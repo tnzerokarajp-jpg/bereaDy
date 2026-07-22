@@ -1,0 +1,1269 @@
+import React, { useState, useEffect, useRef } from 'react';
+import { Settings, CheckCircle2, Link as LinkIcon, Plus, Trash2, ShoppingBag,
+Ticket, MapPin, Sparkles, Anchor, Castle, ExternalLink, ArrowRight, ArrowLeft, Edit3,
+Calendar, Upload, FolderInput, GripVertical, Copy, RotateCcw, Star, List, Map, X, Utensils,
+FerrisWheel, Search, ChevronDown, ChevronUp, Image as ImageIcon, Palette, ClipboardList, GalleryVertical, Navigation, BookOpen } from 'lucide-react';
+import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
+import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy, useSortable } from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
+
+const FETCH_URLS = {
+  todo: `https://docs.google.com/spreadsheets/d/e/2PACX-1vRje60W_cKpfMVkve6yefpGxOLkDgOt7DMSNqA03N6Hdkn0aGKhVY4T-6r-2FQVaMRWQJ6bmcdUU8wt/pub?gid=1621130&single=true&output=csv`,
+  news: `https://docs.google.com/spreadsheets/d/e/2PACX-1vRje60W_cKpfMVkve6yefpGxOLkDgOt7DMSNqA03N6Hdkn0aGKhVY4T-6r-2FQVaMRWQJ6bmcdUU8wt/pub?gid=1795040225&single=true&output=csv`,
+  facilities: `https://docs.google.com/spreadsheets/d/e/2PACX-1vRje60W_cKpfMVkve6yefpGxOLkDgOt7DMSNqA03N6Hdkn0aGKhVY4T-6r-2FQVaMRWQJ6bmcdUU8wt/pub?gid=1441183205&single=true&output=csv`,
+};
+
+type FacilityType = 'ride' | 'show' | 'food' | 'shop';
+type FacilityStatus = '營運中' | '維修中' | '暫停營運';
+
+interface Facility {
+  id: string;
+  park: 'land' | 'sea';
+  category: FacilityType;
+  name: string;
+  enName: string;
+  status: FacilityStatus;
+  lat: number;
+  lng: number;
+}
+
+const DEFAULT_FACILITIES: Facility[] = [
+  { id: 'f01', park: 'land', category: 'shop', name: '便士拱廊', enName: 'Penny Arcade', status: '營運中', lat: 35.6329, lng: 139.8804 },
+  { id: 'f27', park: 'land', category: 'ride', name: '太空山', enName: 'Space Mountain', status: '維修中', lat: 35.6338, lng: 139.8818 },
+  { id: 'f24', park: 'land', category: 'ride', name: '美女與野獸「城堡奇緣」', enName: 'Beauty and the Beast', status: '營運中', lat: 35.6345, lng: 139.8825 },
+  { id: 's01', park: 'sea', category: 'ride', name: '翱翔:夢幻奇航', enName: 'Soaring', status: '營運中', lat: 35.6267, lng: 139.8851 },
+];
+
+const CATEGORIES: { id: FacilityType; label: string; icon: any }[] = [
+  { id: 'ride', label: '設施', icon: FerrisWheel },
+  { id: 'show', label: '表演', icon: Ticket },
+  { id: 'food', label: '餐廳', icon: Utensils },
+  { id: 'shop', label: '商店', icon: ShoppingBag },
+];
+
+const DEFAULT_DATA = {
+  userProfile: { name: "", visitDate: "", coverImage: "", coverPositionY: 50, coverScale: 1, theme: "cream" },
+  todo: [
+    {
+      id: 'g1', title: '事前準備', items: [
+        {
+          id: 't1', title: '選擇入園日', done: false,
+          subs: [
+            { id: 's1_1', title: '入園日選擇教學', done: false, link: 'https://www.threads.com/@tnnodisney/post/DO0sGj8krkk' },
+          ]
+        }
+      ]
+    }
+  ],
+  news: {
+    landGuides: [
+      { category: '認識園區', title: '中文地圖', link: 'https://www.threads.net/' },
+      { category: '爆米花地圖', title: '兩種口味爆米花桶', link: 'https://www.threads.net/' }
+    ],
+    seaGuides: [
+      { category: '認識園區', title: '海洋中文地圖', link: 'https://www.threads.net/' }
+    ],
+    events: [
+      {
+        id: 'e1', title: '玩具總動員5同樂時光', link: 'https://www.threads.net/', date: '2024.11.15 ~ 12.25',
+        quickLinks: [
+          { label: '餐點地圖', link: 'https://www.threads.net/' },
+          { label: '活動懶人包', link: 'https://www.threads.net/' }
+        ]
+      }
+    ],
+    products: [
+      { id: 'p1', title: '小姐與流氓系列', link: 'https://www.threads.net/', date: '2024.11.18 上市' }
+    ]
+  },
+  plan: { land: [] as any[], sea: [] as any[] },
+  myList: [{ id: 'b1', title: '記得新增你的清單!', done: false }]
+};
+
+const THEMES: any = {
+  cream: { name: "奶油杏", bg: "bg-[#f0e0c9]/30", primary: "bg-[#f0e0c9]", text: "text-[#bfa588]", border: "border-[#f0e0c9]" },
+  purple: { name: "香芋紫", bg: "bg-[#c1b4e0]/20", primary: "bg-[#c1b4e0]", text: "text-[#9686bf]", border: "border-[#c1b4e0]" },
+  green: { name: "抹茶綠", bg: "bg-[#b6cf50]/20", primary: "bg-[#b6cf50]", text: "text-[#8ea33e]", border: "border-[#b6cf50]" },
+  cyan: { name:"海鹽藍", bg: "bg-[#79c1cd]/20", primary: "bg-[#79c1cd]", text: "text-[#5b9ca8]", border: "border-[#79c1cd]" },
+  blue: { name:"深海藍", bg: "bg-[#43669e]/10", primary: "bg-[#43669e]", text: "text-[#43669e]", border: "border-[#43669e]" },
+  pink: { name:"櫻花粉", bg: "bg-[#f0c8c8]/20", primary: "bg-[#f0c8c8]", text: "text-[#d69696]", border: "border-[#f0c8c8]" },
+};
+
+const parseCSV = (text: string) => {
+  const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+  if (lines.length < 2) return [];
+  const headers = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g, ''));
+  return lines.slice(1).map(line => {
+    const values = line.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(v => v.trim().replace(/^"|"$/g, ''));
+    const row: any = {};
+    headers.forEach((h, i) => { row[h] = values[i] || ''; });
+    return row;
+  });
+};
+
+const CircularProgress = ({ percentage, colorClass }: { percentage: number, colorClass: string }) => {
+  const radius = 9;
+  const circumference = 2 * Math.PI * radius;
+  const strokeDashoffset = circumference - (percentage / 100) * circumference;
+  return (
+    <div className="relative w-6 h-6 flex items-center justify-center">
+      <svg className="transform -rotate-90 w-full h-full">
+        <circle cx="12" cy="12" r={radius} stroke="#f3f4f6" strokeWidth="3" fill="transparent" />
+        <circle cx="12" cy="12" r={radius} stroke="currentColor" strokeWidth="3" fill="transparent" strokeDasharray={circumference} strokeDashoffset={strokeDashoffset} className={colorClass} strokeLinecap="round" />
+      </svg>
+    </div>
+  );
+};
+
+const getDaysUntil = (dateStr: string) => {
+  if (!dateStr) return 0;
+  const target = new Date(dateStr);
+  const today = new Date();
+  const diff = target.getTime() - today.getTime();
+  const days = Math.ceil(diff / (1000 * 3600 * 24));
+  return days > 0 ? days : 0;
+};
+
+const compressImage = (file: File): Promise<string> => {
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = (event) => {
+      const img = new window.Image();
+      img.src = event.target?.result as string;
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const MAX_WIDTH = 600;
+        const scaleSize = MAX_WIDTH / img.width;
+        canvas.width = MAX_WIDTH;
+        canvas.height = img.height * scaleSize;
+        const ctx = canvas.getContext('2d');
+        ctx?.drawImage(img, 0, 0, canvas.width, canvas.height);
+        resolve(canvas.toDataURL('image/jpeg', 0.5));
+      };
+    };
+  });
+};
+
+const getFaviconUrl = (url: string) => {
+  try {
+    const domain = new URL(url).hostname;
+    return `https://www.google.com/s2/favicons?domain=${domain}&sz=64`;
+  } catch (e) {
+    return null;
+  }
+};
+
+function PlanItem({ id, item, onDelete, index, tm }: any) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id });
+  const style = { transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? 0.5 : 1 };
+  const safeTm = tm || THEMES.cream;
+  
+  const getIcon = (type: string) => {
+    const cat = CATEGORIES.find(c => c.id === type);
+    const Icon = cat ? cat.icon : Sparkles;
+    return <Icon size={16} className="text-gray-500"/>;
+  };
+  
+  const getStatusColor = (status: string) => {
+    if (status === '維修中') return 'text-red-500 bg-red-50 border-red-100';
+    if (status === '暫停營運') return 'text-orange-500 bg-orange-50 border-orange-100';
+    return 'text-green-600 bg-green-50 border-green-100';
+  };
+
+  return (
+    <div ref={setNodeRef} style={style} className="bg-white p-3 mb-2 rounded-xl shadow-sm border border-gray-100 flex items-center justify-between group">
+      <div className="flex items-center gap-3 flex-1 overflow-hidden">
+        <button {...attributes} {...listeners} className="p-2 text-gray-300 hover:text-gray-500 cursor-grab active:cursor-grabbing shrink-0 touch-none">
+          <GripVertical size={20} />
+        </button>
+        <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${safeTm.bg} ${safeTm.text}`}>
+          {index}
+        </div>
+        <div className="flex flex-col min-w-0">
+          <div className="flex items-center gap-2 mb-0.5">
+            {getIcon(item.category)}
+            <span className="text-gray-800 font-bold text-sm truncate">{item.title}</span>
+          </div>
+          {item.enName && <span className="text-[10px] text-gray-400 truncate">{item.enName}</span>}
+        </div>
+      </div>
+      {item.status && item.status !== '營運中' &&(
+        <span className={`text-[10px] px-2 py-0.5 rounded-full border mr-2 ${getStatusColor(item.status)}`}>{item.status}</span>
+      )}
+      <button onClick={() => onDelete(id)} className="text-gray-300 hover:text-red-400 p-2 shrink-0">
+        <Trash2 size={16}/>
+      </button>
+    </div>
+  );
+}
+
+function TodoItem({ item, onToggle, onOpenMenu, tm }: any) { 
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: item.id });
+  const style = { transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? 0.5 : 1 };
+  const safeTm = tm || THEMES.cream; 
+  const lastTapRef = useRef<number>(0);
+
+  const handleDoubleTap = (e: React.MouseEvent | React.TouchEvent, subId?: string) => {
+    e.stopPropagation();
+    const now = Date.now();
+    if (now - lastTapRef.current < 300) {
+      onOpenMenu(item.id, subId);
+    }
+    lastTapRef.current = now;
+  };
+
+  const mainFavicon = item.link ? getFaviconUrl(item.link) : null;
+
+  return (
+    <div 
+      ref={setNodeRef} 
+      style={style} 
+      className={`bg-white p-4 rounded-2xl border border-gray-100 shadow-sm flex items-start gap-3 relative select-none transition-shadow ${isDragging ? 'shadow-lg border-pink-200 z-50' : ''}`}
+      {...attributes} 
+      {...listeners}
+      onClick={(e) => handleDoubleTap(e)}
+    >
+      <button 
+        onClick={(e) => { e.stopPropagation(); onToggle(item.id); }} 
+        className={`mt-0.5 min-w-[22px] h-[22px] rounded-full border-2 flex items-center justify-center transition-all shrink-0 ${item.done ? `${safeTm.primary} border-transparent` : 'border-gray-300 bg-white'}`}
+      >
+        {item.done && <CheckCircle2 size={14} className="text-white" />}
+      </button>
+      
+      <div className="flex-1 min-w-0">
+        <div className="flex justify-between items-start gap-2">
+          <span className={`block font-medium text-sm ${item.done ? 'text-gray-400 line-through' : 'text-gray-700'}`}>
+            {item.title}
+          </span>
+          
+          {item.link && (
+            <a href={item.link} target="_blank" className="shrink-0 p-0.5" onClick={e => e.stopPropagation()}>
+              {mainFavicon ? (
+                <img src={mainFavicon} alt="icon" className="w-5 h-5 rounded-md object-contain opacity-80 hover:opacity-100" />
+              ) : (
+                <div className="text-pink-400 bg-pink-50 p-1 rounded-lg"><LinkIcon size={14}/></div>
+              )}
+            </a>
+          )}
+        </div>
+
+        {item.subs && item.subs.length > 0 && (
+          <div className="mt-3 pl-2 space-y-2 border-l-2 border-gray-100">
+            {item.subs.map((sub:any) => {
+              const subFavicon = sub.link ? getFaviconUrl(sub.link) : null;
+              return (
+                <div key={sub.id} className="flex items-center gap-3 py-1 cursor-pointer" onClick={(e) => handleDoubleTap(e, sub.id)}>
+                  <div 
+                    onClick={(e) => { e.stopPropagation(); onToggle(item.id, sub.id); }} 
+                    className={`min-w-[18px] h-[18px] rounded-md border flex items-center justify-center transition-colors cursor-pointer shrink-0 ${sub.done ? `${safeTm.primary} border-transparent` : 'border-gray-300 bg-white'}`}
+                  >
+                    {sub.done && <CheckCircle2 size={12} className="text-white" />}
+                  </div>
+                  
+                  <span className={`flex-1 text-xs ${sub.done ? 'text-gray-400 line-through' : 'text-gray-600'}`}>
+                    {sub.title}
+                  </span>
+                  
+                  {sub.link && (
+                    <a href={sub.link} target="_blank" className="shrink-0 p-0.5" onClick={e => e.stopPropagation()}>
+                      {subFavicon ? (
+                        <img src={subFavicon} alt="icon" className="w-4 h-4 rounded object-contain opacity-60 hover:opacity-100" />
+                      ) : (
+                        <ExternalLink size={12} className="text-gray-300 hover:text-pink-400"/>
+                      )}
+                    </a>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function ActionMenu({ isOpen, onClose, onAction, itemType }: any) {
+  if (!isOpen) return null;
+  const isSub = itemType === 'sub';
+  return (
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 backdrop-blur-sm" onClick={onClose}>
+      <div className="bg-white w-full max-w-md rounded-t-[2rem] p-6 pb-10 animate-in slide-in-from-bottom-full duration-300" onClick={e => e.stopPropagation()}>
+        <div className="w-12 h-1.5 bg-gray-200 rounded-full mx-auto mb-6"></div>
+        <h3 className="text-center font-bold text-gray-800 mb-6">編輯項目</h3>
+        <div className="grid grid-cols-4 gap-4">
+          <button onClick={() => onAction('edit')} className="flex flex-col items-center gap-2 text-gray-600 active:scale-95"><div className="p-4 bg-gray-100 rounded-2xl"><Edit3 size={24}/></div><span className="text-xs">改名</span></button>
+          <button onClick={() => onAction('link')} className="flex flex-col items-center gap-2 text-gray-600 active:scale-95"><div className="p-4 bg-gray-100 rounded-2xl"><LinkIcon size={24}/></div><span className="text-xs">連結</span></button>
+          {!isSub && <button onClick={() => onAction('indent')} className="flex flex-col items-center gap-2 text-gray-600 active:scale-95"><div className="p-4 bg-gray-100 rounded-2xl"><ArrowRight size={24}/></div><span className="text-xs">縮排</span></button>}
+          {isSub && <button onClick={() => onAction('outdent')} className="flex flex-col items-center gap-2 text-gray-600 active:scale-95"><div className="p-4 bg-gray-100 rounded-2xl"><ArrowLeft size={24}/></div><span className="text-xs">升級</span></button>}
+          <button onClick={() => onAction('move')} className="flex flex-col items-center gap-2 text-gray-600 active:scale-95"><div className="p-4 bg-gray-100 rounded-2xl"><FolderInput size={24}/></div><span className="text-xs">移動</span></button>
+          <button onClick={() => onAction('delete')} className="flex flex-col items-center gap-2 text-red-500 active:scale-95"><div className="p-4 bg-red-50 rounded-2xl"><Trash2 size={24}/></div><span className="text-xs">刪除</span></button>
+        </div>
+        <button onClick={onClose} className="w-full mt-8 py-3 rounded-xl bg-gray-100 font-bold text-gray-600">取消</button>
+      </div>
+    </div>
+  );
+}
+
+interface ParkGuideModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  title: string;
+  parkType: 'land' | 'sea';
+  guides: any[];
+}
+const ParkGuideModal: React.FC<ParkGuideModalProps> = ({ isOpen, onClose, title, parkType, guides }) => {
+  if (!isOpen) return null;
+  const isLand = parkType === 'land';
+
+  const groupedGuides: any = {};
+  guides.forEach(g => {
+    const cat = g.category || '一般攻略';
+    if (!groupedGuides[cat]) groupedGuides[cat] = [];
+    groupedGuides[cat].push(g);
+  });
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-md p-4 animate-in fade-in">
+      <div className="relative w-full max-w-md bg-white/90 backdrop-blur-xl rounded-[2.5rem] p-6 shadow-2xl border border-white/50 flex flex-col max-h-[80vh] overflow-hidden">
+        <div className="flex justify-between items-center mb-6 pb-2 border-b border-gray-200/50 shrink-0">
+          <div className="flex items-center gap-3">
+            <div className={`w-10 h-10 rounded-2xl flex items-center justify-center text-white ${isLand ? 'bg-pink-500' : 'bg-blue-500'}`}>
+              {isLand ? <Castle size={20}/> : <Anchor size={20}/>}
+            </div>
+            <div>
+              <h3 className="font-bold text-lg text-gray-800">{title}</h3>
+              <p className="text-xs text-gray-400">迪士尼{isLand ? '樂園' : '海洋'}文章全輯</p>
+            </div>
+          </div>
+          <button onClick={onClose} className="p-2 bg-gray-100 hover:bg-gray-200 rounded-full text-gray-500"><X size={18}/></button>
+        </div>
+
+        <div className="overflow-y-auto space-y-5 pr-1 flex-1 no-scrollbar">
+          {Object.keys(groupedGuides).length === 0 ? (
+            <div className="text-center py-10 text-gray-400 text-sm">尚無資料</div>
+          ) : (
+            Object.keys(groupedGuides).map(catKey => (
+              <div key={catKey} className="bg-white/60 p-4 rounded-2xl border border-white/80 shadow-sm">
+                <h4 className="font-bold text-xs text-gray-400 mb-3 uppercase tracking-wider">{catKey}</h4>
+                <div className="space-y-2">
+                  {groupedGuides[catKey].map((g: any, idx: number) => {
+                    const favicon = getFaviconUrl(g.link);
+                    return (
+                      <a 
+                        key={idx} 
+                        href={g.link} 
+                        target="_blank" 
+                        rel="noreferrer" 
+                        className="flex items-center justify-between p-2.5 rounded-xl bg-white hover:bg-pink-50/50 transition-all border border-gray-100/80 group"
+                      >
+                        <div className="flex items-center gap-2.5">
+                          {favicon ? (
+                            <img src={favicon} className="w-5 h-5 rounded object-contain" alt="icon"/>
+                          ) : (
+                            <LinkIcon size={14} className="text-pink-400"/>
+                          )}
+                          <span className="text-sm font-medium text-gray-700 group-hover:text-pink-500 transition-colors">{g.title}</span>
+                        </div>
+                      </a>
+                    );
+                  })}
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+interface AddItemModalProps { isOpen: boolean; onClose: () => void; onAdd: (facility: Facility) => void; park: 'land' | 'sea'; facilitiesDb: Facility[]; }
+const AddItemModal: React.FC<AddItemModalProps> = ({ isOpen, onClose, onAdd, park, facilitiesDb }) => {
+  const [selectedCategory, setSelectedCategory] = useState<FacilityType>('ride');
+  const [searchTerm, setSearchTerm] = useState("");
+  if (!isOpen) return null;
+  const filteredFacilities = facilitiesDb.filter(f =>
+    f.park === park && f.category === selectedCategory &&
+    (f.name.includes(searchTerm) || f.enName.toLowerCase().includes(searchTerm.toLowerCase()))
+  );
+  return (
+    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-in fade-in">
+      <div className="bg-white w-full max-w-md h-[75vh] rounded-2xl sm:rounded-3xl shadow-2xl overflow-hidden flex flex-col">
+        <div className="p-4 border-b bg-gray-50 flex justify-between items-center shrink-0">
+          <h3 className="font-bold text-gray-700 flex items-center gap-2"><Plus className="w-5 h-5 text-pink-500" /> 新增行程</h3>
+          <button onClick={onClose} className="p-2 bg-gray-200 rounded-full text-gray-500"><X size={16}/></button>
+        </div>
+        <div className="flex p-2 gap-2 bg-white overflow-x-auto no-scrollbar border-b shrink-0">
+          {CATEGORIES.map(cat => {
+            const Icon = cat.icon;
+            const isActive = selectedCategory === cat.id;
+            return (
+              <button key={cat.id} onClick={() => setSelectedCategory(cat.id)} className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-bold whitespace-nowrap transition-all shrink-0 ${isActive ? 'bg-pink-500 text-white shadow-md' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'}`}>
+                <Icon size={14} /> {cat.label}
+              </button>
+            )
+          })}
+        </div>
+        <div className="p-3 border-b shrink-0">
+          <div className="flex items-center gap-2 bg-gray-100 px-3 py-2 rounded-xl">
+            <Search size={16} className="text-gray-400"/>
+            <input type="text" placeholder="搜尋設施名稱..." className="bg-transparent outline-none text-sm w-full" value={searchTerm} onChange={e => setSearchTerm(e.target.value)} />
+          </div>
+        </div>
+        <div className="overflow-y-auto flex-1 p-2 space-y-2 bg-gray-50">
+          {filteredFacilities.length === 0 ? (
+            <div className="text-center py-10 text-gray-400 text-sm">沒有找到相關項目</div>
+          ) : (
+            filteredFacilities.map(facility => (
+              <button key={facility.id} onClick={() => { onAdd(facility); onClose(); }} disabled={facility.status === '維修中'} className={`w-full text-left p-3 rounded-xl border flex items-center justify-between group transition-all ${facility.status === '維修中' ? 'bg-gray-100 border-gray-200 opacity-60 cursor-not-allowed' : 'bg-white border-gray-100 hover:border-pink-300 hover:shadow-sm'}`}>
+                <div>
+                  <div className="font-bold text-gray-800 text-sm">{facility.name}</div>
+                  <div className="text-[10px] text-gray-400">{facility.enName}</div>
+                </div>
+                {facility.status !== '營運中' ? <span className="text-[10px] bg-red-100 text-red-500 px-2 py-1 rounded-md font-bold">{facility.status}</span> : <Plus size={18} className="text-gray-300 group-hover:text-pink-500" />}
+              </button>
+            ))
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+interface MapModalProps { isOpen: boolean; onClose: () => void; items: any[]; park: 'land' | 'sea'; facilitiesDb: Facility[]; }
+const MapModal: React.FC<MapModalProps> = ({ isOpen, onClose, items, park, facilitiesDb }) => {
+  if (!isOpen) return null;
+
+  const validPoints = items.map(item => {
+    const fac = facilitiesDb.find(f => f.name === item.title);
+    return fac ? { ...fac, title: item.title } : null;
+  }).filter(Boolean) as (Facility & { title: string })[];
+
+  const centerLat = park === 'land' ? 35.6329 : 35.6267;
+  const centerLng = park === 'land' ? 139.8804 : 139.8851;
+  const [selectedIdx, setSelectedIdx] = useState<number>(0);
+
+  const currentTarget = validPoints[selectedIdx] || null;
+  const currentLat = currentTarget ? currentTarget.lat : centerLat;
+  const currentLng = currentTarget ? currentTarget.lng : centerLng;
+  const currentName = currentTarget ? encodeURIComponent(currentTarget.name) : '';
+
+  const embedUrl = currentTarget 
+    ? `https://maps.google.com/maps?q=${currentLat},${currentLng}+(${currentName})&hl=zh-TW&z=17&output=embed`
+    : `https://maps.google.com/maps?q=${centerLat},${centerLng}&hl=zh-TW&z=15&output=embed`;
+
+  const openExternalMap = () => {
+    if (validPoints.length === 0) return;
+    const origin = `${validPoints[0].lat},${validPoints[0].lng}`;
+    const destination = `${validPoints[validPoints.length - 1].lat},${validPoints[validPoints.length - 1].lng}`;
+    const waypoints = validPoints.slice(1, -1).map(p => `${p.lat},${p.lng}`).join('|');
+    const dirUrl = `https://www.google.com/maps/dir/?api=1&origin=${origin}&destination=${destination}${waypoints ? `&waypoints=${waypoints}` : ''}&travelmode=walking`;
+    window.open(dirUrl, '_blank');
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in">
+      <div className="relative w-full max-w-4xl bg-white rounded-3xl overflow-hidden shadow-2xl flex flex-col h-[85vh]">
+        <div className="flex justify-between items-center p-4 bg-gray-50 border-b shrink-0">
+          <div>
+            <h3 className="font-bold text-lg text-gray-800 flex items-center gap-2">
+              <Map className="w-5 h-5 text-blue-500" /> 行程地圖 ({park === 'land' ? '陸地' : '海洋'})
+            </h3>
+            {currentTarget && (
+              <p className="text-xs text-blue-600 font-bold mt-0.5">
+                目前檢視 [{selectedIdx + 1}]：{currentTarget.name}
+              </p>
+            )}
+          </div>
+          <div className="flex items-center gap-2">
+            <button onClick={openExternalMap} className="text-xs bg-blue-600 text-white px-3 py-2 rounded-xl font-bold flex items-center gap-1.5 shadow-md hover:bg-blue-700 active:scale-95 transition-all">
+              <Navigation size={14}/> 路線畫圖 ↗
+            </button>
+            <button onClick={onClose} className="p-2 hover:bg-gray-200 rounded-full text-gray-500"><X size={20}/></button>
+          </div>
+        </div>
+
+        <div className="bg-blue-50/80 px-4 py-2 border-b border-blue-100 text-xs text-blue-700 font-medium shrink-0">
+          💡 點選下方 1, 2, 3 按鈕，App 內地圖會直接拉近並定位到該設施！
+        </div>
+
+        <div className="flex-1 relative bg-gray-100">
+          <iframe 
+            key={embedUrl}
+            title="Google Map Inner Preview"
+            src={embedUrl}
+            className="w-full h-full border-0"
+            loading="lazy"
+          ></iframe>
+        </div>
+
+        <div className="p-3 bg-white border-t overflow-x-auto no-scrollbar flex gap-2 shrink-0">
+          {validPoints.length === 0 ? (
+            <div className="text-xs text-gray-400 py-1 w-full text-center">尚未新增行程或對應不到設施地點</div>
+          ) : (
+            validPoints.map((item, idx) => {
+              const isSelected = idx === selectedIdx;
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => setSelectedIdx(idx)}
+                  className={`flex items-center gap-2 px-3 py-2 rounded-xl shrink-0 transition-all text-xs font-bold ${
+                    isSelected 
+                      ? 'bg-blue-600 text-white shadow-md scale-105' 
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                >
+                  <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold ${
+                    isSelected ? 'bg-white text-blue-600' : 'bg-blue-500 text-white'
+                  }`}>
+                    {idx + 1}
+                  </span>
+                  <span>{item.name}</span>
+                </button>
+              );
+            })
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default function App() {
+  const [activeTab, setActiveTab] = useState('todo');
+  const [data, setData] = useState(DEFAULT_DATA);
+  const [facilitiesDb, setFacilitiesDb] = useState<Facility[]>(DEFAULT_FACILITIES);
+  const [parkMode, setParkMode] = useState<'land' | 'sea'>('land');
+  const [isMapOpen, setIsMapOpen] = useState(false);
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [showOnboarding, setShowOnboarding] = useState(true);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [selectedItem, setSelectedItem] = useState<{groupId: string, itemId: string, subId?: string} | null>(null);
+  const [tempProfile, setTempProfile] = useState({ name: "", date: "", theme: "cream", image: "", positionY: 50, scale: 1 });
+  const [collapsedGroups, setCollapsedGroups] = useState<string[]>([]);
+  const [showNav, setShowNav] = useState(true);
+  const [guideModal, setGuideModal] = useState<{ isOpen: boolean; park: 'land' | 'sea' }>({ isOpen: false, park: 'land' });
+  const lastScrollY = useRef(0);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+      if (currentScrollY > lastScrollY.current && currentScrollY > 50) {
+        setShowNav(false);
+      } else {
+        setShowNav(true);
+      }
+      lastScrollY.current = currentScrollY;
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  useEffect(() => {
+    const fetchCloudData = async () => {
+      try {
+        const todoRes = await fetch(FETCH_URLS.todo);
+        if (todoRes.ok) {
+          const csvText = await todoRes.text();
+          const rows = parseCSV(csvText);
+          const groupsMap: any = {};
+          rows.forEach(r => {
+            const { groupId, groupTitle, itemId, itemTitle, subId, subTitle, link } = r;
+            if (!groupId) return;
+            if (!groupsMap[groupId]) groupsMap[groupId] = { id: groupId, title: groupTitle, items: [] };
+            let item = groupsMap[groupId].items.find((i: any) => i.id === itemId);
+            if (!item && itemId) {
+              item = { id: itemId, title: itemTitle, done: false, link: subId ? '' : link, subs: [] };
+              groupsMap[groupId].items.push(item);
+            }
+            if (subId && subTitle) {
+              item.subs.push({ id: subId, title: subTitle, done: false, link });
+            }
+          });
+          const fetchedTodo = Object.values(groupsMap);
+          if (fetchedTodo.length > 0) {
+            setData(prev => ({ ...prev, todo: fetchedTodo }));
+          }
+        }
+
+        // 解析 News CSV (含 date 日期支援 + 多活動不被覆蓋修正)
+        const newsRes = await fetch(FETCH_URLS.news);
+        if (newsRes.ok) {
+          const csvText = await newsRes.text();
+          const rows = parseCSV(csvText);
+          
+          const landGuides: any[] = [];
+          const seaGuides: any[] = [];
+          const eventsMap: any = {};
+          const products: any[] = [];
+
+          rows.forEach((r, idx) => {
+            const type = r.type || r.sectionId || '';
+            const title = r.title || r.itemTitle || '';
+            const date = r.date || '';
+
+            if (type === 'land_guide') {
+              if (title) landGuides.push({ category: r.category || '攻略', title, link: r.link });
+            } else if (type === 'sea_guide') {
+              if (title) seaGuides.push({ category: r.category || '攻略', title, link: r.link });
+            } else if (type === 'event' || type === 'news_1') {
+              if (title) {
+                // 以 title 做聚合作為卡片 Key，避免相同或無 ID 導致活動被覆蓋
+                const evKey = title;
+                if (!eventsMap[evKey]) {
+                  eventsMap[evKey] = { id: `ev_${idx}`, title, link: r.link, date, quickLinks: [] };
+                }
+                if (r.quickLabel && r.quickLink) {
+                  eventsMap[evKey].quickLinks.push({ label: r.quickLabel, link: r.quickLink });
+                }
+              }
+            } else if (type === 'product' || type === 'news_2') {
+              if (title) products.push({ id: `p_${idx}`, title, link: r.link, date });
+            }
+          });
+
+          setData(prev => ({
+            ...prev,
+            news: {
+              landGuides: landGuides.length > 0 ? landGuides : prev.news.landGuides,
+              seaGuides: seaGuides.length > 0 ? seaGuides : prev.news.seaGuides,
+              events: Object.values(eventsMap).length > 0 ? Object.values(eventsMap) : prev.news.events,
+              products: products.length > 0 ? products : prev.news.products
+            }
+          }));
+        }
+
+        const facRes = await fetch(FETCH_URLS.facilities);
+        if (facRes.ok) {
+          const csvText = await facRes.text();
+          const rows = parseCSV(csvText);
+          const fetchedFacs: Facility[] = rows.map(r => ({
+            id: r.id,
+            park: r.park as any,
+            category: r.category as any,
+            name: r.name,
+            enName: r.enName,
+            status: r.status as any,
+            lat: parseFloat(r.lat) || 35.6329,
+            lng: parseFloat(r.lng) || 139.8804,
+          }));
+          if (fetchedFacs.length > 0) setFacilitiesDb(fetchedFacs);
+        }
+
+      } catch (e) {
+        console.error("Cloud Fetch Error:", e);
+      }
+    };
+
+    try {
+      const savedData = localStorage.getItem('disney_data_v32_no_ext_link');
+      if (savedData) {
+        const parsed = JSON.parse(savedData);
+        setData(prev => ({ ...prev, ...parsed }));
+        if (parsed.userProfile?.name) setShowOnboarding(false);
+        setTempProfile(prev => ({ ...prev, ...parsed.userProfile }));
+      }
+    } catch (e) { console.error(e); }
+
+    fetchCloudData();
+  }, []);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('disney_data_v32_no_ext_link', JSON.stringify(data));
+    } catch (e) {
+      console.error("LocalStorage Full!", e);
+    }
+  }, [data]);
+
+  const tm = THEMES[data.userProfile?.theme] || THEMES.cream;
+
+  const handleUseDefaultImage = () => setTempProfile(p => ({ ...p, image: "/default_cover.jpg" }));
+  const handleClearImage = () => setTempProfile(p => ({ ...p, image: "" }));
+  
+  const toggleGroupCollapse = (groupId: string) => {
+    setCollapsedGroups(prev => prev.includes(groupId) ? prev.filter(id => id !== groupId) : [...prev, groupId]);
+  };
+
+  const handleDragEndPlan = (event: any) => {
+    const { active, over } = event;
+    if (active.id !== over.id) {
+      setData((prev) => {
+        const currentList = prev.plan[parkMode];
+        const oldIndex = currentList.findIndex((i: any) => i.id === active.id);
+        const newIndex = currentList.findIndex((i: any) => i.id === over.id);
+        return { ...prev, plan: { ...prev.plan, [parkMode]: arrayMove(currentList, oldIndex, newIndex) } };
+      });
+    }
+  };
+
+  const handleDeletePlanItem = (id: string) => {
+    setData(prev => ({ ...prev, plan: { ...prev.plan, [parkMode]: prev.plan[parkMode].filter((i: any) => i.id !== id) } }));
+  };
+
+  const handleAddFacility = (facility: Facility) => {
+    const newItem = { id: Date.now().toString(), title: facility.name, enName: facility.enName, category: facility.category, status: facility.status };
+    setData(prev => ({ ...prev, plan: { ...prev.plan, [parkMode]: [...prev.plan[parkMode], newItem] } }));
+  };
+
+  const handleCopyPlan = () => {
+    const currentList = data.plan[parkMode];
+    if (currentList.length === 0) return alert('行程是空的喔!');
+    let text = `迪士尼${parkMode === 'land' ? '樂園' : '海洋'}行程\n`;
+    currentList.forEach((item: any, index: number) => { text += `${index + 1}. ${item.title}\n`; });
+    navigator.clipboard.writeText(text);
+    alert('已複製行程到剪貼簿!');
+  };
+
+  const openActionMenu = (groupId: string, itemId: string, subId?: string) => {
+    setSelectedItem({ groupId, itemId, subId });
+    setMenuOpen(true);
+  };
+
+  const executeAction = (action: string) => {
+    if (!selectedItem) return;
+    const { groupId, itemId, subId } = selectedItem;
+    const newData = JSON.parse(JSON.stringify(data));
+    const group = newData.todo.find((g:any) => g.id === groupId);
+    const item = group.items.find((i:any) => i.id === itemId);
+    const sub = subId && item.subs ? item.subs.find((s:any) => s.id === subId) : null;
+    const target = sub || item;
+
+    if (action === 'delete') {
+      if(confirm('確定刪除嗎?')) {
+        if(sub) item.subs = item.subs.filter((s:any) => s.id !== subId);
+        else group.items = group.items.filter((i:any) => i.id !== itemId);
+      }
+    } else if (action === 'edit') {
+      const newTitle = prompt('修改名稱', target.title);
+      if(newTitle) target.title = newTitle;
+    } else if (action === 'link') {
+      const newLink = prompt('修改連結(輸入空值可移除)', target.link || "");
+      target.link = newLink;
+    } else if (action === 'indent' && !sub) {
+      const idx = group.items.findIndex((i:any) => i.id === itemId);
+      if(idx > 0) {
+        const prev = group.items[idx-1];
+        if(!prev.subs) prev.subs = [];
+        prev.subs.push(item);
+        group.items.splice(idx, 1);
+      }
+    } else if (action === 'outdent' && sub) {
+      item.subs = item.subs.filter((s:any) => s.id !== subId);
+      const parentIdx = group.items.findIndex((i:any) => i.id === itemId);
+      group.items.splice(parentIdx + 1, 0, sub);
+    } else if (action === 'move') {
+      const groupIdx = newData.todo.findIndex((g:any) => g.id === groupId);
+      const nextGroup = newData.todo[(groupIdx + 1) % newData.todo.length];
+      if(confirm(`移動到「${nextGroup.title}」?`)) {
+        if(sub) {
+          item.subs = item.subs.filter((s:any) => s.id !== subId);
+          nextGroup.items.push(sub);
+        } else {
+          group.items = group.items.filter((i:any) => i.id !== itemId);
+          nextGroup.items.push(item);
+        }
+      }
+    }
+    setData(newData);
+    setMenuOpen(false);
+  };
+
+  const quickAdd = (groupId: string, e: any) => {
+    if (e.key === 'Enter' && e.target.value.trim()) {
+      const newData = JSON.parse(JSON.stringify(data));
+      const group = newData.todo.find((g:any) => g.id === groupId);
+      group.items.push({ id: Date.now().toString(), title: e.target.value, done: false });
+      setData(newData);
+      e.target.value = "";
+    }
+  };
+
+  const toggleTodo = (groupId: string, itemId: string, subId?: string) => {
+    const newData = JSON.parse(JSON.stringify(data));
+    const group = newData.todo.find((g: any) => g.id === groupId);
+    const item = group?.items.find((i: any) => i.id === itemId);
+
+    if (!item) return;
+
+    if (subId && item.subs) {
+      const sub = item.subs.find((s: any) => s.id === subId);
+      if (sub) {
+        sub.done = !sub.done;
+      }
+      const allSubsDone = item.subs.every((s: any) => s.done);
+      item.done = allSubsDone;
+    } else {
+      const nextState = !item.done;
+      item.done = nextState;
+      if (item.subs && item.subs.length > 0) {
+        item.subs.forEach((sub: any) => {
+          sub.done = nextState;
+        });
+      }
+    }
+
+    setData(newData);
+  };
+
+  const handleDragEndTodo = (event: any, groupId: string) => {
+    const { active, over } = event;
+    if (active.id !== over.id) {
+      setData((prev) => {
+        const newData = JSON.parse(JSON.stringify(prev));
+        const group = newData.todo.find((g:any) => g.id === groupId);
+        const oldIndex = group.items.findIndex((i:any) => i.id === active.id);
+        const newIndex = group.items.findIndex((i:any) => i.id === over.id);
+        group.items = arrayMove(group.items, oldIndex, newIndex);
+        return newData;
+      });
+    }
+  };
+
+  const toggleMyList = (itemId: string) => {
+    const newData = JSON.parse(JSON.stringify(data));
+    if (!newData.myList) newData.myList = [];
+    const item = newData.myList.find((i:any) => i.id === itemId);
+    if (item) item.done = !item.done;
+    setData(newData);
+  };
+
+  const deleteMyList = (itemId: string) => {
+    const newData = JSON.parse(JSON.stringify(data));
+    if (!newData.myList) newData.myList = [];
+    newData.myList = newData.myList.filter((i:any) => i.id !== itemId);
+    setData(newData);
+  };
+
+  const handleAddMyList = () => {
+    const title = prompt('請輸入項目名稱');
+    if (!title) return;
+    const newItem = { id: Date.now().toString(), title, done: false };
+    const newData = JSON.parse(JSON.stringify(data));
+    if (!newData.myList) newData.myList = [];
+    newData.myList.push(newItem);
+    setData(newData);
+  };
+
+  const getGroupProgress = (group: any) => {
+    let total = 0, done = 0;
+    group.items.forEach((item: any) => {
+      total++; if (item.done) done++;
+      if (item.subs) {
+        item.subs.forEach((sub: any) => { total++; if (sub.done) done++; });
+      }
+    });
+    return total === 0 ? 0 : (done / total) * 100;
+  };
+
+  const handleCopyList = () => {
+    let text = "我的迪士尼清單\n";
+    data.todo.forEach((g:any) => {
+      text += `\n[${g.title}]\n`;
+      g.items.forEach((i:any) => {
+        if(!i.done) text += `☐ ${i.title}\n`;
+        if(i.subs) { i.subs.forEach((s:any) => { if(!s.done) text += `  ☐ ${s.title}\n`; }); }
+      });
+    });
+    navigator.clipboard.writeText(text);
+    alert('已複製未完成項目!');
+  };
+
+  const handleReset = () => {
+    if(confirm('確定要重置所有進度嗎? 會回到最初狀態喔!')) {
+      setData(DEFAULT_DATA);
+      localStorage.removeItem('disney_data_v32_no_ext_link');
+      window.location.reload();
+    }
+  };
+
+  const handleImageUpload = async (e: any) => {
+    const file = e.target.files[0];
+    if (file) {
+      const compressed = await compressImage(file);
+      setTempProfile(p => ({ ...p, image: compressed }));
+    }
+  };
+
+  const finishOnboarding = () => {
+    if (!tempProfile.name || !tempProfile.date) return alert('請填寫名字和日期喔!');
+    setData(prev => ({
+      ...prev,
+      userProfile: { name: tempProfile.name, visitDate: tempProfile.date, coverImage: tempProfile.image, coverPositionY: tempProfile.positionY, coverScale: tempProfile.scale, theme: tempProfile.theme }
+    }));
+    setShowOnboarding(false);
+  };
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { delay: 250, tolerance: 5 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
+  );
+
+  return (
+    <div className="min-h-screen bg-gray-100 pb-28 font-sans">
+      
+      {showOnboarding && (
+        <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center p-6 bg-white/95 backdrop-blur-md animate-in fade-in overflow-y-auto">
+          <div className="w-full max-w-sm py-10">
+            <h2 className="text-2xl font-black text-center mb-1 text-gray-800">從0開始建立專屬攻略✨</h2>
+            <div className="space-y-6 mt-6">
+              <div>
+                <label className="block text-xs font-bold text-gray-400 mb-2 uppercase">封面照片</label>
+                <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-gray-300 rounded-2xl cursor-pointer hover:bg-gray-50 bg-white overflow-hidden relative">
+                  {tempProfile.image ? (
+                    <img src={tempProfile.image} className="w-full h-full object-cover" style={{ objectPosition: `50% ${tempProfile.positionY}%`, transform: `scale(${tempProfile.scale})` }} />
+                  ) : (
+                    <div className="flex flex-col items-center text-gray-400"><Upload size={24}/><span className="text-xs mt-2">點擊上傳</span></div>
+                  )}
+                  <input type="file" className="hidden" accept="image/*" onChange={handleImageUpload} />
+                </label>
+                <div className="flex gap-2 mt-2">
+                  <button onClick={handleUseDefaultImage} className="flex-1 py-2 bg-gray-100 rounded-xl text-xs font-bold text-gray-600 flex items-center justify-center gap-1 hover:bg-gray-200">
+                    <ImageIcon size={14}/> 使用內建美圖
+                  </button>
+                  <button onClick={handleClearImage} className="flex-1 py-2 bg-gray-100 rounded-xl text-xs font-bold text-gray-600 flex items-center justify-center gap-1 hover:bg-gray-200">
+                    <Palette size={14}/> 使用純色背景
+                  </button>
+                </div>
+              </div>
+              
+              <div>
+                <label className="block text-xs font-bold text-gray-400 mb-2 uppercase">圖片位置調整</label>
+                <div className="flex items-center gap-3 mb-4">
+                  <span className="text-xs text-gray-400 font-bold">上</span>
+                  <input type="range" min="0" max="100" value={tempProfile.positionY} onChange={e => setTempProfile({...tempProfile, positionY: parseInt(e.target.value)})} className="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-pink-500"/>
+                  <span className="text-xs text-gray-400 font-bold">下</span>
+                </div>
+              </div>
+              
+              <div>
+                <label className="block text-xs font-bold text-gray-400 mb-2 uppercase">你的名字</label>
+                <input type="text" placeholder="Bonnie" className="w-full p-4 bg-gray-100 rounded-xl font-bold text-lg outline-none focus:ring-2 focus:ring-pink-300" value={tempProfile.name} onChange={e => setTempProfile({...tempProfile, name: e.target.value})} />
+              </div>
+              
+              <div>
+                <label className="block text-xs font-bold text-gray-400 mb-2 uppercase">入園日期</label>
+                <div className="relative">
+                  <Calendar className="absolute left-4 top-4 text-gray-400" size={20}/>
+                  <input type="date" className="w-full p-4 pl-12 bg-gray-100 rounded-xl font-bold outline-none" value={tempProfile.date} onChange={e => setTempProfile({...tempProfile, date: e.target.value})} />
+                </div>
+              </div>
+              
+              <div>
+                <label className="block text-xs font-bold text-gray-400 mb-2 uppercase">主題風格</label>
+                <div className="flex gap-3 justify-center">
+                  {Object.keys(THEMES).map(k => (
+                    <button key={k} onClick={() => setTempProfile({...tempProfile, theme: k})} className={`w-10 h-10 rounded-full border-4 transition-transform ${tempProfile.theme === k ? 'border-gray-800 scale-110' : 'border-transparent'} ${THEMES[k].primary}`} />
+                  ))}
+                </div>
+              </div>
+              <button onClick={finishOnboarding} className={`w-full py-4 rounded-xl text-white font-bold shadow-lg mt-4 ${THEMES[tempProfile.theme].primary}`}>開始規劃旅程</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {!showOnboarding && (
+        <>
+          <div className="relative h-72 w-full overflow-hidden">
+            {data.userProfile.coverImage ? (
+              <img src={data.userProfile.coverImage} className="absolute inset-0 h-full w-full object-cover" style={{ objectPosition: `50% ${data.userProfile.coverPositionY}%`, transform: `scale(${data.userProfile.coverScale || 1})` }} />
+            ) : <div className={`w-full h-full ${tm.bg} flex items-center justify-center text-gray-300`}></div>}
+            
+            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
+            
+            <div className="absolute bottom-20 left-6 text-white">
+              <h1 className="text-4xl font-impact tracking-normal mb-1 flex items-baseline drop-shadow-md uppercase">
+                be rea<span className="text-xl mx-0.5 font-sans font-bold">.</span><span className="text-6xl mx-[1px]">D</span><span className="text-xl mx-0.5 font-sans font-bold">.</span>y
+              </h1>
+              <p className="text-sm opacity-90 font-medium">{data.userProfile.name}的專屬攻略</p>
+              
+              <label className="relative mt-3 inline-flex items-center gap-2 bg-white/20 backdrop-blur-md px-3 py-1 rounded-full text-xs hover:bg-white/30 transition-colors cursor-pointer overflow-hidden">
+                <Calendar size={12}/>
+                <span className="relative z-0">{data.userProfile.visitDate || "選擇日期"}</span>
+                <input type="date" className="absolute inset-0 opacity-0 w-full h-full z-10 cursor-pointer" value={data.userProfile.visitDate} onChange={e => setData(prev => ({...prev, userProfile: {...prev.userProfile, visitDate: e.target.value}}))} />
+              </label>
+            </div>
+            
+            <div className="absolute bottom-20 right-6 text-white text-right">
+              <span className="text-xs opacity-80 block mb-1">倒數</span>
+              <span className="text-4xl font-black flex items-baseline justify-end gap-1">{getDaysUntil(data.userProfile.visitDate)}<span className="text-sm font-medium">天</span></span>
+            </div>
+            
+            <button onClick={() => setShowOnboarding(true)} className="absolute top-6 right-6 p-2 bg-white/20 backdrop-blur-md rounded-full text-white"><Settings size={20}/></button>
+          </div>
+
+          <main className="p-5 max-w-md mx-auto -mt-16 relative z-10">
+            
+            {activeTab === 'plan' && (
+              <div className="animate-in slide-in-from-bottom-4 duration-300">
+                <div className="bg-white/80 backdrop-blur-sm p-4 rounded-[2rem] border border-white shadow-sm min-h-[400px]">
+                  <div className="flex bg-gray-100 p-1 rounded-xl mb-4">
+                    <button onClick={() => setParkMode('land')} className={`flex-1 py-2 rounded-lg text-sm font-bold transition-all flex items-center justify-center gap-1.5 ${parkMode === 'land' ? 'bg-white shadow-sm text-pink-500' : 'text-gray-400 hover:text-gray-600'}`}>
+                      <Castle size={14}/> 樂園
+                    </button>
+                    <button onClick={() => setParkMode('sea')} className={`flex-1 py-2 rounded-lg text-sm font-bold transition-all flex items-center justify-center gap-1.5 ${parkMode === 'sea' ? 'bg-white shadow-sm text-blue-500' : 'text-gray-400 hover:text-gray-600'}`}>
+                      <Anchor size={14}/> 海洋
+                    </button>
+                  </div>
+                  <div className="flex justify-between items-center mb-4 px-1">
+                    <h3 className="font-bold text-lg flex items-center gap-2 text-gray-800">
+                      一日行程 <span className="bg-white px-2 py-0.5 rounded-full text-xs text-gray-400 border">{data.plan[parkMode].length}</span>
+                    </h3>
+                    <div className="flex gap-2 items-center">
+                      <button onClick={() => setIsMapOpen(true)} className="text-blue-600 bg-blue-50 hover:bg-blue-100 px-3 py-1.5 rounded-lg text-sm font-bold flex items-center gap-1 transition-colors">
+                        <Map size={14}/> 地圖
+                      </button>
+                      <button onClick={() => setIsAddModalOpen(true)} className={`w-8 h-8 flex items-center justify-center rounded-full text-white shadow-md transition-transform hover:scale-110 active:scale-95 ${tm.primary}`}>
+                        <Plus size={20}/>
+                      </button>
+                    </div>
+                  </div>
+                  
+                  <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEndPlan}>
+                    <SortableContext items={data.plan[parkMode]} strategy={verticalListSortingStrategy}>
+                      <div className="space-y-2 pb-4">
+                        {data.plan[parkMode].length === 0 ? (
+                          <div className="text-center py-10 text-gray-300 border-2 border-dashed border-gray-200 rounded-xl">點擊上方+新增第一個行程</div>
+                        ) : (
+                          data.plan[parkMode].map((item: any, index: number) => (
+                            <PlanItem key={item.id} id={item.id} item={item} onDelete={handleDeletePlanItem} index={index + 1} tm={tm} />
+                          ))
+                        )}
+                      </div>
+                    </SortableContext>
+                  </DndContext>
+                  
+                  <div className="pt-4 border-t border-gray-100 flex justify-center">
+                    <button onClick={handleCopyPlan} className="text-xs text-gray-400 font-bold hover:text-gray-600 border border-gray-200 px-4 py-2 rounded-full flex items-center gap-2">
+                      <ClipboardList size={14}/> 複製行程
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {activeTab === 'todo' && (
+              <div className="space-y-6">
+                {data.todo.map((group:any) => {
+                  const isCollapsed = collapsedGroups.includes(group.id);
+                  return (
+                    <div key={group.id} className="bg-white rounded-[2rem] p-5 shadow-sm border border-gray-100">
+                      <div className="flex justify-between items-center mb-2 pl-2" onClick={() => toggleGroupCollapse(group.id)}>
+                        <div className="flex items-center gap-2 cursor-pointer">
+                          {isCollapsed ? <ChevronDown size={20} className="text-gray-400"/> : <ChevronUp size={20} className="text-gray-400"/>}
+                          <h3 className="font-bold text-lg text-gray-800">{group.title}</h3>
+                        </div>
+                        {!isCollapsed && <CircularProgress percentage={getGroupProgress(group)} colorClass={tm.text} />}
+                      </div>
+                      
+                      {!isCollapsed && (
+                        <>
+                          <div className="mb-4"></div>
+                          <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={(e) => handleDragEndTodo(e, group.id)}>
+                            <SortableContext items={group.items} strategy={verticalListSortingStrategy}>
+                              <div className="flex flex-col gap-3">
+                                {group.items.map((item:any) => (
+                                  <TodoItem 
+                                    key={item.id} 
+                                    item={item} 
+                                    tm={tm}
+                                    onToggle={(itemId:string, subId?:string) => toggleTodo(group.id, itemId, subId)}
+                                    onOpenMenu={(id:string, subId?:string) => openActionMenu(group.id, id, subId)}
+                                  />
+                                ))}
+                              </div>
+                            </SortableContext>
+                          </DndContext>
+                          <div className="mt-4 flex items-center gap-3 px-4 py-3 bg-gray-50 rounded-xl">
+                            <Plus size={18} className="text-gray-400"/>
+                            <input type="text" placeholder="新增待辦..." className="bg-transparent outline-none text-sm w-full text-gray-600" onKeyDown={(e) => quickAdd(group.id, e)} />
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  );
+                })}
+                <div className="pt-4 flex gap-4 justify-center pb-8">
+                  <button onClick={handleCopyList} className="text-xs text-gray-400 font-bold hover:text-gray-600 border border-gray-200 px-4 py-2 rounded-full flex items-center gap-2"><Copy size={14}/> 複製清單</button>
+                  <button onClick={handleReset} className="text-xs text-red-300 font-bold hover:text-red-500 border border-red-100 px-4 py-2 rounded-full flex items-center gap-2"><RotateCcw size={14}/> 重置 APP</button>
+                </div>
+              </div>
+            )}
+
+            {/* 方案 C 【攻略情報】 Tab */}
+            {activeTab === 'news' && (
+              <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                
+                {/* 1. 最上方【樂園攻略】與【海洋攻略】按鈕區 */}
+                <div className="grid grid-cols-2 gap-4">
+                  <button 
+                    onClick={() => setGuideModal({ isOpen: true, park: 'land' })}
+                    className="bg-white p-5 rounded-[2rem] border border-gray-100 shadow-sm flex flex-col items-center text-center group hover:shadow-md transition-all active:scale-95"
+                  >
+                    <div className="w-12 h-12 rounded-2xl bg-pink-100 text-pink-500 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                      <Castle size={24}/>
+                    </div>
+                    <span className="font-bold text-gray-800 text-base block">樂園攻略</span>
+                    <span className="text-xs text-gray-400 mt-0.5">Land 專屬指南</span>
+                  </button>
+
+                  <button 
+                    onClick={() => setGuideModal({ isOpen: true, park: 'sea' })}
+                    className="bg-white p-5 rounded-[2rem] border border-gray-100 shadow-sm flex flex-col items-center text-center group hover:shadow-md transition-all active:scale-95"
+                  >
+                    <div className="w-12 h-12 rounded-2xl bg-blue-100 text-blue-500 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                      <Anchor size={24}/>
+                    </div>
+                    <span className="font-bold text-gray-800 text-base block">海洋攻略</span>
+                    <span className="text-xs text-gray-400 mt-0.5">Sea 專屬指南</span>
+                  </button>
+                </div>
+
+                {/* 2. 下方第一區塊：【近期活動】（已移除右側超連結 Icon，帶入日期） */}
+                <div className="bg-white rounded-[2rem] p-5 shadow-sm border border-gray-100">
+                  <h3 className="font-bold text-lg text-gray-800 mb-4 pl-1 flex items-center gap-2">
+                    <Sparkles size={18} className="text-pink-500"/> 近期活動
+                  </h3>
+                  <div className="space-y-3">
+                    {data.news?.events?.map((ev: any) => {
+                      const mainFavicon = getFaviconUrl(ev.link);
+                      return (
+                        <div key={ev.id} className="p-4 rounded-2xl bg-gray-50 border border-gray-100">
+                          <a href={ev.link || '#'} target="_blank" rel="noreferrer" className="block group">
+                            <div className="flex items-center gap-3">
+                              {mainFavicon ? <img src={mainFavicon} className="w-6 h-6 rounded object-contain"/> : <Star size={18} className="text-pink-400"/>}
+                              <div>
+                                <span className="font-bold text-gray-800 text-sm group-hover:text-pink-500 transition-colors block">{ev.title}</span>
+                                {ev.date && <span className="text-[11px] text-gray-400 font-medium block mt-0.5">{ev.date}</span>}
+                              </div>
+                            </div>
+                          </a>
+
+                          {/* Quick Links 標籤區 (無右側連結圖示) */}
+                          {ev.quickLinks && ev.quickLinks.length > 0 && (
+                            <div className="mt-3 pt-3 border-t border-gray-200/60 flex flex-wrap gap-2">
+                              {ev.quickLinks.map((q: any, qIdx: number) => (
+                                <a 
+                                  key={qIdx} 
+                                  href={q.link} 
+                                  target="_blank" 
+                                  rel="noreferrer" 
+                                  className="text-[11px] font-bold bg-white text-gray-600 px-3 py-1.5 rounded-xl border border-gray-200 hover:border-pink-300 hover:text-pink-500 transition-colors shadow-2xs"
+                                >
+                                  {q.label}
+                                </a>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* 3. 下方第二區塊：【近期新品】（已移除右側超連結 Icon，帶入上市日期） */}
+                <div className="bg-white rounded-[2rem] p-5 shadow-sm border border-gray-100">
+                  <h3 className="font-bold text-lg text-gray-800 mb-4 pl-1 flex items-center gap-2">
+                    <ShoppingBag size={18} className="text-purple-500"/> 近期新品
+                  </h3>
+                  <div className="space-y-2">
+                    {data.news?.products?.map((p: any) => {
+                      const favicon = getFaviconUrl(p.link);
+                      return (
+                        <a 
+                          key={p.id} 
+                          href={p.link || '#'} 
+                          target="_blank" 
+                          rel="noreferrer" 
+                          className="flex items-center p-3 rounded-xl bg-gray-50 hover:bg-gray-100 transition-colors group"
+                        >
+                          <div className="flex items-center gap-3">
+                            {favicon ? <img src={favicon} className="w-5 h-5 rounded object-contain"/> : <ShoppingBag size={16} className="text-purple-400"/>}
+                            <div>
+                              <span className="font-bold text-gray-700 text-sm group-hover:text-purple-600 transition-colors block">{p.title}</span>
+                              {p.date && <span className="text-[11px] text-gray-400 font-medium block mt-0.5">{p.date}</span>}
+                            </div>
+                          </div>
+                        </a>
+                      );
+                    })}
+                  </div>
+                </div>
+
+              </div>
+            )}
+
+            {activeTab === 'mylist' && (
+              <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+                <div className="space-y-4">
+                  <div className="bg-white p-6 rounded-[2rem] shadow-sm border border-gray-100 text-center mb-4">
+                    <ShoppingBag size={32} className={`mx-auto mb-2 ${tm.text} opacity-20`} />
+                    <h3 className="text-gray-800 font-bold">我的清單</h3>
+                    <p className="text-gray-400 text-xs mt-1">必買商品、必吃美食都記在這裡!</p>
+                  </div>
+                  <div className="space-y-3">
+                    {data.myList?.map((item:any) => (
+                      <div key={item.id} className={`bg-white p-4 rounded-2xl border flex items-center gap-3 transition-all ${item.done ? 'opacity-50 border-gray-100' : 'border-gray-100 shadow-sm'}`}>
+                        <button onClick={() => toggleMyList(item.id)} className={`min-w-[24px] h-6 rounded-full border-2 flex items-center justify-center transition-colors ${item.done ? tm.primary + ' border-transparent' : 'border-gray-300'}`}>
+                          {item.done && <CheckCircle2 size={16} className="text-white" />}
+                        </button>
+                        <span className={`flex-1 font-medium ${item.done ? 'line-through text-gray-400' : 'text-gray-700'}`}>{item.title}</span>
+                        <button onClick={() => deleteMyList(item.id)} className="text-gray-300 hover:text-red-400"><Trash2 size={16}/></button>
+                      </div>
+                    ))}
+                  </div>
+                  <button onClick={handleAddMyList} className={`w-full mt-4 px-6 py-4 rounded-xl ${tm.primary} text-white font-bold shadow-lg hover:opacity-90 active:scale-95 transition-all flex items-center justify-center gap-2`}><Plus size={20}/> 新增項目</button>
+                </div>
+              </div>
+            )}
+          </main>
+
+          <ActionMenu isOpen={menuOpen} onClose={() => setMenuOpen(false)} onAction={executeAction} itemType={selectedItem?.subId ? 'sub' : 'item'} />
+          
+          <ParkGuideModal 
+            isOpen={guideModal.isOpen} 
+            onClose={() => setGuideModal({ isOpen: false, park: 'land' })}
+            title={guideModal.park === 'land' ? '樂園攻略 Land' : '海洋攻略 Sea'}
+            parkType={guideModal.park}
+            guides={guideModal.park === 'land' ? (data.news?.landGuides || []) : (data.news?.seaGuides || [])}
+          />
+
+          <AddItemModal isOpen={isAddModalOpen} onClose={() => setIsAddModalOpen(false)} onAdd={handleAddFacility} park={parkMode} facilitiesDb={facilitiesDb} />
+          <MapModal isOpen={isMapOpen} onClose={() => setIsMapOpen(false)} items={data.plan[parkMode]} park={parkMode} facilitiesDb={facilitiesDb} />
+          
+          <nav className={`fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 w-full z-40 shadow-lg transition-transform duration-300 ${showNav ? 'translate-y-0' : 'translate-y-full'}`}>
+            <div className="grid grid-cols-4 items-end pb-10 pt-4">
+              <button onClick={() => setActiveTab('todo')} className="flex flex-col items-center gap-0.5 transition-all active:scale-95 group">
+                <div className={`transition-all duration-300 ${activeTab === 'todo' ? '-translate-y-1' : ''}`}>
+                  <CheckCircle2 size={22} className={activeTab === 'todo' ? tm.text : 'text-gray-300 group-hover:text-gray-400'} strokeWidth={activeTab === 'todo' ? 2.5 : 2} />
+                </div>
+                <span className={`text-[10px] font-bold transition-all duration-300 ${activeTab === 'todo' ? `${tm.text} -translate-y-1` : 'text-gray-400'}`}>準備</span>
+              </button>
+              <button onClick={() => setActiveTab('news')} className="flex flex-col items-center gap-0.5 transition-all active:scale-95 group">
+                <div className={`transition-all duration-300 ${activeTab === 'news' ? '-translate-y-1' : ''}`}>
+                  <BookOpen size={22} className={activeTab === 'news' ? tm.text : 'text-gray-300 group-hover:text-gray-400'} strokeWidth={activeTab === 'news' ? 2.5 : 2} />
+                </div>
+                <span className={`text-[10px] font-bold transition-all duration-300 ${activeTab === 'news' ? `${tm.text} -translate-y-1` : 'text-gray-400'}`}>攻略情報</span>
+              </button>
+              <button onClick={() => setActiveTab('plan')} className="flex flex-col items-center gap-0.5 transition-all active:scale-95 group">
+                <div className={`transition-all duration-300 ${activeTab === 'plan' ? '-translate-y-1' : ''}`}>
+                  <GalleryVertical size={22} className={activeTab === 'plan' ? tm.text : 'text-gray-300 group-hover:text-gray-400'} strokeWidth={activeTab === 'plan' ? 2.5 : 2} />
+                </div>
+                <span className={`text-[10px] font-bold transition-all duration-300 ${activeTab === 'plan' ? `${tm.text} -translate-y-1` : 'text-gray-400'}`}>行程</span>
+              </button>
+              <button onClick={() => setActiveTab('mylist')} className="flex flex-col items-center gap-0.5 transition-all active:scale-95 group">
+                <div className={`transition-all duration-300 ${activeTab === 'mylist' ? '-translate-y-1' : ''}`}>
+                  <List size={22} className={activeTab === 'mylist' ? tm.text : 'text-gray-300 group-hover:text-gray-400'} strokeWidth={activeTab === 'mylist' ? 2.5 : 2} />
+                </div>
+                <span className={`text-[10px] font-bold transition-all duration-300 ${activeTab === 'mylist' ? `${tm.text} -translate-y-1` : 'text-gray-400'}`}>清單</span>
+              </button>
+            </div>
+          </nav>
+        </>
+      )}
+    </div>
+  );
+}

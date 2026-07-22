@@ -1,0 +1,16 @@
+{
+  "short_name": "bereaDy",
+  "name": "bereaDy",
+  "icons": [
+    {
+      "src": "icon.jpg",
+      "type": "image/jpeg",
+      "sizes": "512x512",
+      "purpose": "any maskable"
+    }
+  ],
+  "start_url": "/",
+  "background_color": "#ffffff",
+  "theme_color": "#f0e0c9",
+  "display": "standalone"
+}

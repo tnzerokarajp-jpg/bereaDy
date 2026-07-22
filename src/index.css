@@ -1,0 +1,8 @@
+@import url('https://fonts.googleapis.com/css2?family=Impact&display=swap');
+
+.font-impact {
+  font-family: 'Impact', 'Arial Black', sans-serif;
+}
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
