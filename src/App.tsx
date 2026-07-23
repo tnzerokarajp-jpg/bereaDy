@@ -500,8 +500,8 @@ const AboutModal: React.FC<AboutModalProps> = ({ isOpen, onClose, onOpenSettings
 
         <div className="text-xs space-y-1 bg-amber-50/60 p-3.5 rounded-2xl border border-amber-100/80">
           <div className="font-bold text-amber-800 flex items-center justify-between">
-            <span>📌 更新說明</span>
-            <span className="text-[10px] text-amber-600 font-normal">最新：{info.lastUpdate || '2026/07/23'}</span>
+            <span>📍 更新說明</span>
+            <span className="text-[10px] text-amber-600 font-normal">更新時間：{info.lastUpdate || '2026/07/23'}</span>
           </div>
           <p className="text-amber-700/90 text-[11px] leading-relaxed whitespace-pre-line">
             {info.updateNotice || '固定每月 1 號更新，無法完全及時！有需要請自行調整內容！'}
@@ -1572,7 +1572,7 @@ export default function App() {
                   </div>
                 </div>
 
-                {/* 近期新品：加回 Icon 縮圖 */}
+                {/* 近期新品 */}
                 <div className="bg-white rounded-[2rem] p-5 shadow-sm border border-gray-100">
                   <h3 className="font-bold text-lg text-gray-800 mb-4 pl-1">
                     近期新品
@@ -1586,7 +1586,6 @@ export default function App() {
                       return (
                         <div key={p.id} className={`p-3.5 rounded-xl border flex items-center justify-between gap-3 transition-all ${isFav ? 'bg-amber-50/40 border-amber-200/80 shadow-sm' : 'bg-gray-50 border-gray-100'}`}>
                           <div className="flex items-center gap-3 flex-1 min-w-0">
-                            {/* 💡 1. 恢復 Favicon / 購物袋 Icon */}
                             {favicon ? (
                               <img src={favicon} alt="icon" className="w-5 h-5 rounded object-contain shrink-0"/>
                             ) : (
@@ -1632,7 +1631,6 @@ export default function App() {
               <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
                 <div className="space-y-4">
                   
-                  {/* 💡 3. 說明文字精簡（已移除括號文字） */}
                   <div className="bg-white p-6 rounded-[2rem] shadow-sm border border-gray-100 text-center mb-4">
                     <ShoppingBag size={32} className={`mx-auto mb-2 ${tm.text} opacity-20`} />
                     <h3 className="text-gray-800 font-bold">我的清單</h3>
@@ -1659,7 +1657,7 @@ export default function App() {
                             {item.title}
                           </span>
                           
-                          {/* 💡 4. 精確鎖定 Favicon 為 18px (w-[18px] h-[18px])，順序：[🔗 連結/Favicon] ➔ [🗑️ 刪除] (最右) */}
+                          {/* 右側：[🔗 連結/Favicon 18px] ➔ [🗑️ 刪除按鈕] (最右側防誤觸) */}
                           <div className="flex items-center gap-2.5 shrink-0">
                             {item.link && item.link !== '#' ? (
                               <a href={item.link} target="_blank" rel="noreferrer" onClick={e => e.stopPropagation()} className="p-1 block shrink-0">
@@ -1724,6 +1722,7 @@ export default function App() {
           <AddItemModal isOpen={isAddModalOpen} onClose={() => setIsAddModalOpen(false)} onAdd={handleAddFacility} park={parkMode} facilitiesDb={facilitiesDb} tm={tm} />
           <MapModal isOpen={isMapOpen} onClose={() => setIsMapOpen(false)} items={data.plan[parkMode]} park={parkMode} facilitiesDb={facilitiesDb} />
           
+          {/* 💡 底部導覽列「行程規劃」正式更新為 Map 🗺️ 图示 */}
           <nav className={`fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 w-full z-40 shadow-lg transition-transform duration-300 ${showNav ? 'translate-y-0' : 'translate-y-full'}`}>
             <div className="grid grid-cols-4 items-end pb-10 pt-3">
               <button onClick={() => setActiveTab('todo')} className="flex flex-col items-center gap-1 transition-all active:scale-95 group">
@@ -1740,7 +1739,7 @@ export default function App() {
               </button>
               <button onClick={() => setActiveTab('plan')} className="flex flex-col items-center gap-1 transition-all active:scale-95 group">
                 <div className={`transition-all duration-300 ${activeTab === 'plan' ? '-translate-y-1' : ''}`}>
-                  <GalleryVertical size={22} className={activeTab === 'plan' ? tm.text : 'text-gray-300 group-hover:text-gray-400'} strokeWidth={activeTab === 'plan' ? 2.5 : 2} />
+                  <Map size={22} className={activeTab === 'plan' ? tm.text : 'text-gray-300 group-hover:text-gray-400'} strokeWidth={activeTab === 'plan' ? 2.5 : 2} />
                 </div>
                 <span className={`text-xs font-bold transition-all duration-300 ${activeTab === 'plan' ? `${tm.text} -translate-y-1` : 'text-gray-400'}`}>行程規劃</span>
               </button>
