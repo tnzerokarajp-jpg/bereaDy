@@ -205,7 +205,6 @@ const getFaviconUrl = (url: string) => {
   }
 };
 
-// 💡 雙欄編輯 Modal：儲存按鈕動態連動主題色
 interface ItemEditModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -598,7 +597,6 @@ const ParkGuideModal: React.FC<ParkGuideModalProps> = ({ isOpen, onClose, parkTy
   );
 };
 
-// 💡 新增行程 Modal：分類與精緻連動主題色
 interface AddItemModalProps { isOpen: boolean; onClose: () => void; onAdd: (facility: Facility) => void; park: 'land' | 'sea'; facilitiesDb: Facility[]; tm: any; }
 const AddItemModal: React.FC<AddItemModalProps> = ({ isOpen, onClose, onAdd, park, facilitiesDb, tm }) => {
   const [selectedCategory, setSelectedCategory] = useState<FacilityType>('ride');
@@ -1552,7 +1550,7 @@ export default function App() {
                             </div>
                           )}
 
-                          {/* 💡 2. Quick Links 按鈕樣式連動主題色 */}
+                          {/* Quick Links：按鈕樣式連動主題色 */}
                           {ev.quickLinks && ev.quickLinks.length > 0 && (
                             <div className="mt-3 pt-3 border-t border-gray-200/60 flex flex-wrap gap-2">
                               {ev.quickLinks.map((q: any, qIdx: number) => (
@@ -1574,7 +1572,7 @@ export default function App() {
                   </div>
                 </div>
 
-                {/* 近期新品：1. 恢復 Icon 縮圖 */}
+                {/* 近期新品：加回 Icon 縮圖 */}
                 <div className="bg-white rounded-[2rem] p-5 shadow-sm border border-gray-100">
                   <h3 className="font-bold text-lg text-gray-800 mb-4 pl-1">
                     近期新品
@@ -1590,7 +1588,7 @@ export default function App() {
                           <div className="flex items-center gap-3 flex-1 min-w-0">
                             {/* 💡 1. 恢復 Favicon / 購物袋 Icon */}
                             {favicon ? (
-                              <img src={favicon} className="w-5 h-5 rounded object-contain shrink-0"/>
+                              <img src={favicon} alt="icon" className="w-5 h-5 rounded object-contain shrink-0"/>
                             ) : (
                               <ShoppingBag size={18} className="text-purple-400 shrink-0"/>
                             )}
@@ -1634,7 +1632,7 @@ export default function App() {
               <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
                 <div className="space-y-4">
                   
-                  {/* 💡 3. 清單說明文字精簡（移除括號文字） */}
+                  {/* 💡 3. 說明文字精簡（已移除括號文字） */}
                   <div className="bg-white p-6 rounded-[2rem] shadow-sm border border-gray-100 text-center mb-4">
                     <ShoppingBag size={32} className={`mx-auto mb-2 ${tm.text} opacity-20`} />
                     <h3 className="text-gray-800 font-bold">我的清單</h3>
@@ -1661,21 +1659,21 @@ export default function App() {
                             {item.title}
                           </span>
                           
-                          {/* 💡 4. 順序調整：[🔗 連結/Favicon] 在左，[🗑️ 刪除] 在最右 */}
-                          <div className="flex items-center gap-2 shrink-0">
+                          {/* 💡 4. 精確鎖定 Favicon 為 18px (w-[18px] h-[18px])，順序：[🔗 連結/Favicon] ➔ [🗑️ 刪除] (最右) */}
+                          <div className="flex items-center gap-2.5 shrink-0">
                             {item.link && item.link !== '#' ? (
-                              <a href={item.link} target="_blank" rel="noreferrer" onClick={e => e.stopPropagation()} className="p-1 block">
+                              <a href={item.link} target="_blank" rel="noreferrer" onClick={e => e.stopPropagation()} className="p-1 block shrink-0">
                                 {itemFavicon ? (
-                                  <img src={itemFavicon} alt="icon" className="w-4.5 h-4.5 rounded object-contain opacity-80 hover:opacity-100" />
+                                  <img src={itemFavicon} alt="icon" className="w-[18px] h-[18px] rounded-md object-contain opacity-80 hover:opacity-100 block shrink-0" />
                                 ) : (
-                                  <ExternalLink size={16} className="text-pink-400 hover:text-pink-600"/>
+                                  <ExternalLink size={16} className="text-pink-400 hover:text-pink-600 shrink-0"/>
                                 )}
                               </a>
                             ) : null}
 
                             <button 
                               onClick={(e) => { e.stopPropagation(); deleteMyList(item.id); }} 
-                              className="text-gray-300 hover:text-red-400 p-1 rounded-lg transition-colors"
+                              className="text-gray-300 hover:text-red-400 p-1 rounded-lg transition-colors shrink-0"
                               title="刪除"
                             >
                               <Trash2 size={16}/>
