@@ -11,8 +11,7 @@ const FETCH_URLS = {
   todo: `https://docs.google.com/spreadsheets/d/e/2PACX-1vRje60W_cKpfMVkve6yefpGxOLkDgOt7DMSNqA03N6Hdkn0aGKhVY4T-6r-2FQVaMRWQJ6bmcdUU8wt/pub?gid=1621130&single=true&output=csv`,
   news: `https://docs.google.com/spreadsheets/d/e/2PACX-1vRje60W_cKpfMVkve6yefpGxOLkDgOt7DMSNqA03N6Hdkn0aGKhVY4T-6r-2FQVaMRWQJ6bmcdUU8wt/pub?gid=1795040225&single=true&output=csv`,
   facilities: `https://docs.google.com/spreadsheets/d/e/2PACX-1vRje60W_cKpfMVkve6yefpGxOLkDgOt7DMSNqA03N6Hdkn0aGKhVY4T-6r-2FQVaMRWQJ6bmcdUU8wt/pub?gid=1441183205&single=true&output=csv`,
-  // 如果你開了 about 頁面的 CSV，可在這裡填入對應 URL：
-  about: `https://docsgoogle.com/spreadsheets/d/e/2PACX-1vRje60W_cKpfMVkve6yefpGxOLkDgOt7DMSNqA03N6Hdkn0aGKhVY4T-6r-2FQVaMRWQJ6bmcdUU8wt/pub?gid=0&single=true&output=csv`,
+  about: `https://docs.google.com/spreadsheets/d/e/2PACX-1vRje60W_cKpfMVkve6yefpGxOLkDgOt7DMSNqA03N6Hdkn0aGKhVY4T-6r-2FQVaMRWQJ6bmcdUU8wt/pub?gid=0&single=true&output=csv`,
 };
 
 type FacilityType = 'ride' | 'show' | 'food' | 'shop';
@@ -259,7 +258,8 @@ function TodoItem({ item, onToggle, onOpenMenu, tm }: any) {
           {item.link && (
             <a href={item.link} target="_blank" className="shrink-0 p-0.5" onClick={e => e.stopPropagation()}>
               {mainFavicon ? (
-                <img src={mainFavicon} alt="icon" className="w-4.5 h-4.5 rounded-md object-contain opacity-80 hover:opacity-100" />
+                /* 修正：主項目 Icon 鎖定精緻尺寸 w-5 h-5 (20px)，決不膨脹跑版 */
+                <img src={mainFavicon} alt="icon" className="w-5 h-5 rounded-md object-contain opacity-80 hover:opacity-100" />
               ) : (
                 <div className="text-pink-400 bg-pink-50 p-1 rounded-lg"><LinkIcon size={14}/></div>
               )}
@@ -288,9 +288,10 @@ function TodoItem({ item, onToggle, onOpenMenu, tm }: any) {
                   {sub.link && (
                     <a href={sub.link} target="_blank" className="shrink-0 p-0.5" onClick={e => e.stopPropagation()}>
                       {subFavicon ? (
-                        <img src={subFavicon} alt="icon" className="w-4 h-4 rounded-md object-contain opacity-70 hover:opacity-100" />
+                        /* 修正：子項目 Icon 放大 1-2px 至 w-[18px] h-[18px] */
+                        <img src={subFavicon} alt="icon" className="w-[18px] h-[18px] rounded-md object-contain opacity-80 hover:opacity-100" />
                       ) : (
-                        <ExternalLink size={14} className="text-gray-300 hover:text-pink-400"/>
+                        <ExternalLink size={15} className="text-gray-300 hover:text-pink-400"/>
                       )}
                     </a>
                   )}
@@ -340,19 +341,20 @@ const AboutModal: React.FC<AboutModalProps> = ({ isOpen, onClose, onOpenSettings
     <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/50 backdrop-blur-md p-4 animate-in fade-in">
       <div className="relative w-full max-w-sm bg-white rounded-[2.5rem] p-6 shadow-2xl border border-white flex flex-col space-y-5">
         
+        {/* 標題區域：關於 be rea.D.y 採用 Impact 封面同款字型 + 移除右上方 ✕ 號 */}
         <div className="flex justify-between items-center border-b pb-3">
-          <h3 className="font-extrabold text-lg text-gray-800 flex items-center gap-2">
-            關於 be reaDy
+          <h3 className="text-gray-800 flex items-center gap-1.5">
+            <span className="text-lg font-extrabold">關於</span>
+            <span className="text-2xl font-impact tracking-normal flex items-baseline uppercase">
+              be rea<span className="text-xs mx-0.5 font-sans font-bold">.</span><span className="text-3xl mx-[0.5px]">D</span><span className="text-xs mx-0.5 font-sans font-bold">.</span>y
+            </span>
           </h3>
-          <div className="flex items-center gap-2">
-            <button 
-              onClick={() => { onClose(); onOpenSettings(); }} 
-              className="text-xs font-bold bg-pink-50 text-pink-600 px-3 py-1.5 rounded-full border border-pink-200 hover:bg-pink-100 active:scale-95 transition-all"
-            >
-              ⚙️ 調整設定
-            </button>
-            <button onClick={onClose} className="p-1.5 hover:bg-gray-100 rounded-full text-gray-400"><X size={18}/></button>
-          </div>
+          <button 
+            onClick={() => { onClose(); onOpenSettings(); }} 
+            className="text-xs font-bold bg-pink-50 text-pink-600 px-3 py-1.5 rounded-full border border-pink-200 hover:bg-pink-100 active:scale-95 transition-all"
+          >
+            ⚙️ 調整設定
+          </button>
         </div>
 
         <div className="bg-gray-50 p-3.5 rounded-2xl border border-gray-100 text-center">
@@ -753,7 +755,7 @@ export default function App() {
           if (fetchedFacs.length > 0) setFacilitiesDb(fetchedFacs);
         }
 
-        // Fetch About Data (連線 Google Sheet 讀取資訊頁)
+        // Fetch About Data (精準清洗 key/value，確保 100% 讀取試算表)
         if (FETCH_URLS.about) {
           const aboutRes = await fetch(FETCH_URLS.about);
           if (aboutRes.ok) {
@@ -761,21 +763,22 @@ export default function App() {
             const rows = parseCSV(csvText);
             const aboutObj: any = {};
             rows.forEach(r => {
-              if (r.key && r.value) aboutObj[r.key] = r.value;
+              const k = (r.key || r.Key || '').trim().toLowerCase();
+              const v = (r.value || r.Value || '').trim();
+              if (k && v) aboutObj[k] = v;
             });
-            if (Object.keys(aboutObj).length > 0) {
-              setData(prev => ({
-                ...prev,
-                about: {
-                  lastUpdate: aboutObj.last_update || prev.about.lastUpdate,
-                  updateNotice: aboutObj.update_notice || prev.about.updateNotice,
-                  disclaimer: aboutObj.disclaimer || prev.about.disclaimer,
-                  igUrl: aboutObj.ig_url || prev.about.igUrl,
-                  threadsUrl: aboutObj.threads_url || prev.about.threadsUrl,
-                  sponsorUrl: aboutObj.sponsor_url || prev.about.sponsorUrl
-                }
-              }));
-            }
+
+            setData(prev => ({
+              ...prev,
+              about: {
+                lastUpdate: aboutObj.last_update || prev.about.lastUpdate,
+                updateNotice: aboutObj.update_notice || prev.about.updateNotice,
+                disclaimer: aboutObj.disclaimer || prev.about.disclaimer,
+                igUrl: aboutObj.ig_url || prev.about.igUrl,
+                threadsUrl: aboutObj.threads_url || prev.about.threadsUrl,
+                sponsorUrl: aboutObj.sponsor_url || prev.about.sponsorUrl
+              }
+            }));
           }
         }
 
