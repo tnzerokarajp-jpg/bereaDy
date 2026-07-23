@@ -459,7 +459,6 @@ const AboutModal: React.FC<AboutModalProps> = ({ isOpen, onClose, onOpenSettings
   );
 };
 
-// 💡 攻略彈窗圖示改為 🏰 / 🌋
 interface ParkGuideModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -1027,6 +1026,7 @@ export default function App() {
     }
   };
 
+  // 💡 我的清單：toggle 勾選
   const toggleMyList = (itemId: string) => {
     const newData = JSON.parse(JSON.stringify(data));
     if (!newData.myList) newData.myList = [];
@@ -1035,6 +1035,7 @@ export default function App() {
     setData(newData);
   };
 
+  // 💡 我的清單：刪除
   const deleteMyList = (itemId: string) => {
     const newData = JSON.parse(JSON.stringify(data));
     if (!newData.myList) newData.myList = [];
@@ -1042,6 +1043,7 @@ export default function App() {
     setData(newData);
   };
 
+  // 💡 我的清單 a.現有項目：雙擊同時編輯名稱與連結
   const handleMyListDoubleTap = (item: any) => {
     const now = Date.now();
     const lastTap = myListTapRef.current[item.id] || 0;
@@ -1061,11 +1063,17 @@ export default function App() {
     myListTapRef.current[item.id] = now;
   };
 
+  // 💡 我的清單 b.新增項目：同時新增名稱與連結
   const handleAddMyList = () => {
     const title = prompt('請輸入項目名稱：');
     if (!title || !title.trim()) return;
     const link = prompt('請輸入連結 (選填，無連結直接按確定即可)：');
-    const newItem = { id: Date.now().toString(), title: title.trim(), link: link ? link.trim() : '', done: false };
+    const newItem = { 
+      id: Date.now().toString(), 
+      title: title.trim(), 
+      link: link ? link.trim() : '', 
+      done: false 
+    };
     const newData = JSON.parse(JSON.stringify(data));
     if (!newData.myList) newData.myList = [];
     newData.myList.push(newItem);
@@ -1244,7 +1252,6 @@ export default function App() {
               <div className="animate-in slide-in-from-bottom-4 duration-300">
                 <div className="bg-white/80 backdrop-blur-sm p-4 rounded-[2rem] border border-white shadow-sm min-h-[400px]">
                   
-                  {/* 💡 行程頁按鈕圖示改為 🏰 與 🌋 */}
                   <div className="flex bg-gray-100 p-1 rounded-xl mb-4">
                     <button onClick={() => setParkMode('land')} className={`flex-1 py-2 rounded-lg text-sm font-bold transition-all flex items-center justify-center gap-1.5 ${parkMode === 'land' ? 'bg-white shadow-sm text-pink-500' : 'text-gray-400 hover:text-gray-600'}`}>
                       <span className="text-base">🏰</span> 樂園
@@ -1343,8 +1350,6 @@ export default function App() {
             {/* 攻略情報 Tab */}
             {activeTab === 'news' && (
               <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                
-                {/* 💡 攻略情報按鈕圖示改為 🏰 與 🌋 */}
                 <div className="grid grid-cols-2 gap-4">
                   <button 
                     onClick={() => setGuideModal({ isOpen: true, park: 'land' })}
@@ -1367,7 +1372,6 @@ export default function App() {
                   </button>
                 </div>
 
-                {/* 💡 近期活動：標題與列表圖示已完全移除，純靠 GSheet 內容呈現 */}
                 <div className="bg-white rounded-[2rem] p-5 shadow-sm border border-gray-100">
                   <h3 className="font-bold text-lg text-gray-800 mb-4 pl-1">
                     近期活動
@@ -1408,7 +1412,6 @@ export default function App() {
                   </div>
                 </div>
 
-                {/* 💡 近期新品：標題與列表圖示已完全移除，純靠 GSheet 內容呈現 */}
                 <div className="bg-white rounded-[2rem] p-5 shadow-sm border border-gray-100">
                   <h3 className="font-bold text-lg text-gray-800 mb-4 pl-1">
                     近期新品
@@ -1440,15 +1443,16 @@ export default function App() {
               </div>
             )}
 
-            {/* 我的清單 Tab */}
+            {/* 💡 我的清單 Tab：新增連結、雙擊編輯、刪除按鈕左側、連結 ICON 右側 */}
             {activeTab === 'mylist' && (
               <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
                 <div className="space-y-4">
                   <div className="bg-white p-6 rounded-[2rem] shadow-sm border border-gray-100 text-center mb-4">
                     <ShoppingBag size={32} className={`mx-auto mb-2 ${tm.text} opacity-20`} />
                     <h3 className="text-gray-800 font-bold">我的清單</h3>
-                    <p className="text-gray-400 text-xs mt-1">必買商品、必吃美食都記在這裡！(雙擊項目可編輯)</p>
+                    <p className="text-gray-400 text-xs mt-1">必買商品、必吃美食都記在這裡！(雙擊項目可編輯名稱與連結)</p>
                   </div>
+
                   <div className="space-y-3">
                     {data.myList?.map((item:any) => {
                       const itemFavicon = item.link ? getFaviconUrl(item.link) : null;
@@ -1456,7 +1460,7 @@ export default function App() {
                         <div 
                           key={item.id} 
                           onClick={() => handleMyListDoubleTap(item)}
-                          className={`bg-white p-4 rounded-2xl border flex items-center gap-3 transition-all select-none cursor-pointer ${item.done ? 'opacity-50 border-gray-100' : 'border-gray-100 shadow-sm'}`}
+                          className={`bg-white p-4 rounded-2xl border flex items-center gap-3 transition-all select-none cursor-pointer active:scale-[0.99] ${item.done ? 'opacity-50 border-gray-100' : 'border-gray-100 shadow-sm'}`}
                         >
                           <button 
                             onClick={(e) => { e.stopPropagation(); toggleMyList(item.id); }} 
@@ -1469,16 +1473,18 @@ export default function App() {
                             {item.title}
                           </span>
                           
+                          {/* 右側按鈕區域：左側為【🗑️ 刪除】，右側為【🔗 連結Icon】 */}
                           <div className="flex items-center gap-2 shrink-0">
                             <button 
                               onClick={(e) => { e.stopPropagation(); deleteMyList(item.id); }} 
                               className="text-gray-300 hover:text-red-400 p-1 rounded-lg transition-colors"
+                              title="刪除"
                             >
                               <Trash2 size={16}/>
                             </button>
 
                             {item.link ? (
-                              <a href={item.link} target="_blank" rel="noreferrer" onClick={e => e.stopPropagation()} className="p-1">
+                              <a href={item.link} target="_blank" rel="noreferrer" onClick={e => e.stopPropagation()} className="p-1 block">
                                 {itemFavicon ? (
                                   <img src={itemFavicon} alt="icon" className="w-4.5 h-4.5 rounded object-contain opacity-80 hover:opacity-100" />
                                 ) : (
@@ -1486,14 +1492,20 @@ export default function App() {
                                 )}
                               </a>
                             ) : (
-                              <span className="w-4.5"></span>
+                              <span className="w-4.5 h-4.5 block"></span>
                             )}
                           </div>
                         </div>
                       );
                     })}
                   </div>
-                  <button onClick={handleAddMyList} className={`w-full mt-4 px-6 py-4 rounded-xl ${tm.primary} text-white font-bold shadow-lg hover:opacity-90 active:scale-95 transition-all flex items-center justify-center gap-2`}><Plus size={20}/> 新增項目</button>
+
+                  <button 
+                    onClick={handleAddMyList} 
+                    className={`w-full mt-4 px-6 py-4 rounded-xl ${tm.primary} text-white font-bold shadow-lg hover:opacity-90 active:scale-95 transition-all flex items-center justify-center gap-2`}
+                  >
+                    <Plus size={20}/> 新增項目
+                  </button>
                 </div>
               </div>
             )}
