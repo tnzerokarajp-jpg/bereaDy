@@ -66,7 +66,7 @@ const DEFAULT_DATA = {
     ],
     events: [
       {
-        id: 'e1', title: '玩具總動員5同樂時光', link: 'https://www.threads.net/', date: '2024.11.15 ~ 12.25',
+        id: 'e1', title: '🧸 玩具總動員 5 同樂時光', link: '', date: '2026/07/02 - 2026/9/14',
         quickLinks: [
           { label: '餐點地圖', link: 'https://www.threads.net/' },
           { label: '活動懶人包', link: 'https://www.threads.net/' }
@@ -86,7 +86,8 @@ const DEFAULT_DATA = {
     sponsorUrl: 'https://portaly.cc/tnnodisney'
   },
   plan: { land: [] as any[], sea: [] as any[] },
-  myList: [{ id: 'b1', title: '記得新增你的清單!', link: '', done: false }]
+  myList: [{ id: 'b1', title: '記得新增你的清單!', link: '', done: false }],
+  favorites: [] as string[] // 儲存置頂收藏 ID
 };
 
 const THEMES: any = {
@@ -195,12 +196,75 @@ const compressImage = (file: File): Promise<string> => {
 };
 
 const getFaviconUrl = (url: string) => {
+  if (!url || url === '#') return null;
   try {
     const domain = new URL(url).hostname;
     return `https://www.google.com/s2/favicons?domain=${domain}&sz=64`;
   } catch (e) {
     return null;
   }
+};
+
+// 💡 1. 雙欄編輯 Modal：同時編輯名稱與連結
+interface ItemEditModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onSave: (title: string, link: string) => void;
+  initialTitle: string;
+  initialLink: string;
+}
+const ItemEditModal: React.FC<ItemEditModalProps> = ({ isOpen, onClose, onSave, initialTitle, initialLink }) => {
+  const [title, setTitle] = useState(initialTitle);
+  const [link, setLink] = useState(initialLink);
+
+  useEffect(() => {
+    setTitle(initialTitle);
+    setLink(initialLink);
+  }, [initialTitle, initialLink, isOpen]);
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-[90] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-in fade-in" onClick={onClose}>
+      <div className="bg-white w-full max-w-sm rounded-3xl p-6 shadow-2xl flex flex-col space-y-4" onClick={e => e.stopPropagation()}>
+        <h3 className="font-bold text-lg text-gray-800 text-center">編輯項目</h3>
+        
+        <div>
+          <label className="block text-xs font-bold text-gray-400 mb-1">項目名稱</label>
+          <input 
+            type="text" 
+            className="w-full p-3 bg-gray-100 rounded-xl font-bold text-sm outline-none focus:ring-2 focus:ring-pink-300"
+            value={title}
+            onChange={e => setTitle(e.target.value)}
+            placeholder="請輸入名稱"
+          />
+        </div>
+
+        <div>
+          <label className="block text-xs font-bold text-gray-400 mb-1">連結網址 (選填)</label>
+          <input 
+            type="text" 
+            className="w-full p-3 bg-gray-100 rounded-xl text-xs outline-none focus:ring-2 focus:ring-pink-300"
+            value={link}
+            onChange={e => setLink(e.target.value)}
+            placeholder="https://..."
+          />
+        </div>
+
+        <div className="flex gap-2 pt-2">
+          <button onClick={onClose} className="flex-1 py-3 bg-gray-100 font-bold text-gray-600 rounded-xl text-sm hover:bg-gray-200">
+            取消
+          </button>
+          <button 
+            onClick={() => { onSave(title, link); onClose(); }} 
+            className="flex-1 py-3 bg-pink-500 font-bold text-white rounded-xl text-sm shadow-md hover:bg-pink-600 active:scale-95 transition-all"
+          >
+            儲存
+          </button>
+        </div>
+      </div>
+    </div>
+  );
 };
 
 function PlanItem({ id, item, onDelete, index, tm }: any) {
@@ -217,7 +281,7 @@ function PlanItem({ id, item, onDelete, index, tm }: any) {
     const Icon = cat ? cat.icon : Sparkles;
     return <Icon size={18} className="text-gray-500 shrink-0"/>;
   };
-  
+
   const getStatusColor = (status: string) => {
     if (status === '維修中') return 'text-red-500 bg-red-50 border-red-100';
     if (status === '暫停營運') return 'text-orange-500 bg-orange-50 border-orange-100';
@@ -302,8 +366,8 @@ function TodoItem({ item, onToggle, onOpenMenu, tm }: any) {
             {item.title}
           </span>
           
-          {item.link && (
-            <a href={item.link} target="_blank" className="shrink-0 p-0.5" onClick={e => e.stopPropagation()}>
+          {item.link && item.link !== '#' && (
+            <a href={item.link} target="_blank" rel="noreferrer" className="shrink-0 p-0.5" onClick={e => e.stopPropagation()}>
               {mainFavicon ? (
                 <img src={mainFavicon} alt="icon" className="w-5 h-5 rounded-md object-contain opacity-80 hover:opacity-100" />
               ) : (
@@ -330,8 +394,8 @@ function TodoItem({ item, onToggle, onOpenMenu, tm }: any) {
                     {sub.title}
                   </span>
                   
-                  {sub.link && (
-                    <a href={sub.link} target="_blank" className="shrink-0 p-0.5" onClick={e => e.stopPropagation()}>
+                  {sub.link && sub.link !== '#' && (
+                    <a href={sub.link} target="_blank" rel="noreferrer" className="shrink-0 p-0.5" onClick={e => e.stopPropagation()}>
                       {subFavicon ? (
                         <img src={subFavicon} alt="icon" className="w-[18px] h-[18px] rounded-md object-contain opacity-80 hover:opacity-100" />
                       ) : (
@@ -716,6 +780,15 @@ export default function App() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState<{groupId: string, itemId: string, subId?: string} | null>(null);
   
+  // 💡 雙欄編輯 Modal 狀態
+  const [editModal, setEditModal] = useState<{
+    isOpen: boolean;
+    title: string;
+    link: string;
+    type: 'todo' | 'mylist';
+    targetData?: any;
+  }>({ isOpen: false, title: '', link: '', type: 'todo' });
+
   const [tempProfile, setTempProfile] = useState({ name: "請輸入名字", date: "", theme: "cream", image: "", positionY: 50, scale: 1 });
   const [collapsedGroups, setCollapsedGroups] = useState<string[]>([]);
   const [showNav, setShowNav] = useState(true);
@@ -888,6 +961,16 @@ export default function App() {
     setCollapsedGroups(prev => prev.includes(groupId) ? prev.filter(id => id !== groupId) : [...prev, groupId]);
   };
 
+  // 💡 4. 星星置頂切換（收藏/取消收藏）
+  const toggleFavorite = (id: string) => {
+    setData(prev => {
+      const currentFavs = prev.favorites || [];
+      const exists = currentFavs.includes(id);
+      const newFavs = exists ? currentFavs.filter(fId => fId !== id) : [...currentFavs, id];
+      return { ...prev, favorites: newFavs };
+    });
+  };
+
   const handleDragEndPlan = (event: any) => {
     const { active, over } = event;
     if (active && over && active.id !== over.id) {
@@ -923,56 +1006,95 @@ export default function App() {
     setMenuOpen(true);
   };
 
+  // 💡 1. 編輯與連結合體為雙欄編輯 Modal 彈窗
   const executeAction = (action: string) => {
     if (!selectedItem) return;
     const { groupId, itemId, subId } = selectedItem;
-    const newData = JSON.parse(JSON.stringify(data));
-    const group = newData.todo.find((g:any) => g.id === groupId);
-    const item = group.items.find((i:any) => i.id === itemId);
-    const sub = subId && item.subs ? item.subs.find((s:any) => s.id === subId) : null;
+    const group = data.todo.find((g:any) => g.id === groupId);
+    const item = group?.items.find((i:any) => i.id === itemId);
+    const sub = subId && item?.subs ? item.subs.find((s:any) => s.id === subId) : null;
     const target = sub || item;
 
     if (action === 'delete') {
       if(confirm('確定刪除嗎?')) {
-        if(sub) item.subs = item.subs.filter((s:any) => s.id !== subId);
-        else group.items = group.items.filter((i:any) => i.id !== itemId);
+        const newData = JSON.parse(JSON.stringify(data));
+        const g = newData.todo.find((x:any) => x.id === groupId);
+        const it = g.items.find((x:any) => x.id === itemId);
+        if(sub) it.subs = it.subs.filter((s:any) => s.id !== subId);
+        else g.items = g.items.filter((x:any) => x.id !== itemId);
+        setData(newData);
       }
     } else if (action === 'edit_combined') {
-      const newTitle = prompt('修改名稱：', target.title);
-      if (newTitle !== null && newTitle.trim()) {
-        target.title = newTitle.trim();
-        const newLink = prompt('修改連結 (直接按確定不修改，清空則移除)：', target.link || "");
-        if (newLink !== null) {
-          target.link = newLink.trim();
-        }
-      }
+      setEditModal({
+        isOpen: true,
+        title: target.title,
+        link: target.link || '',
+        type: 'todo',
+        targetData: { groupId, itemId, subId }
+      });
     } else if (action === 'indent' && !sub) {
-      const idx = group.items.findIndex((i:any) => i.id === itemId);
+      const newData = JSON.parse(JSON.stringify(data));
+      const g = newData.todo.find((x:any) => x.id === groupId);
+      const idx = g.items.findIndex((i:any) => i.id === itemId);
       if(idx > 0) {
-        const prev = group.items[idx-1];
+        const prev = g.items[idx-1];
         if(!prev.subs) prev.subs = [];
         prev.subs.push(item);
-        group.items.splice(idx, 1);
+        g.items.splice(idx, 1);
+        setData(newData);
       }
     } else if (action === 'outdent' && sub) {
-      item.subs = item.subs.filter((s:any) => s.id !== subId);
-      const parentIdx = group.items.findIndex((i:any) => i.id === itemId);
-      group.items.splice(parentIdx + 1, 0, sub);
+      const newData = JSON.parse(JSON.stringify(data));
+      const g = newData.todo.find((x:any) => x.id === groupId);
+      const it = g.items.find((x:any) => x.id === itemId);
+      it.subs = it.subs.filter((s:any) => s.id !== subId);
+      const parentIdx = g.items.findIndex((x:any) => x.id === itemId);
+      g.items.splice(parentIdx + 1, 0, sub);
+      setData(newData);
     } else if (action === 'move') {
+      const newData = JSON.parse(JSON.stringify(data));
       const groupIdx = newData.todo.findIndex((g:any) => g.id === groupId);
       const nextGroup = newData.todo[(groupIdx + 1) % newData.todo.length];
       if(confirm(`移動到「${nextGroup.title}」?`)) {
+        const g = newData.todo.find((x:any) => x.id === groupId);
+        const it = g.items.find((x:any) => x.id === itemId);
         if(sub) {
-          item.subs = item.subs.filter((s:any) => s.id !== subId);
+          it.subs = it.subs.filter((s:any) => s.id !== subId);
           nextGroup.items.push(sub);
         } else {
-          group.items = group.items.filter((i:any) => i.id !== itemId);
-          nextGroup.items.push(item);
+          g.items = g.items.filter((x:any) => x.id !== itemId);
+          nextGroup.items.push(it);
         }
+        setData(newData);
       }
     }
-    setData(newData);
     setMenuOpen(false);
+  };
+
+  // 💡 雙欄 Modal 儲存處理器
+  const handleModalSave = (newTitle: string, newLink: string) => {
+    if (editModal.type === 'todo') {
+      const { groupId, itemId, subId } = editModal.targetData;
+      const newData = JSON.parse(JSON.stringify(data));
+      const group = newData.todo.find((g:any) => g.id === groupId);
+      const item = group.items.find((i:any) => i.id === itemId);
+      const sub = subId && item.subs ? item.subs.find((s:any) => s.id === subId) : null;
+      const target = sub || item;
+      if (target) {
+        target.title = newTitle;
+        target.link = newLink;
+        setData(newData);
+      }
+    } else if (editModal.type === 'mylist') {
+      const { itemId } = editModal.targetData;
+      const newData = JSON.parse(JSON.stringify(data));
+      const target = newData.myList.find((i: any) => i.id === itemId);
+      if (target) {
+        target.title = newTitle;
+        target.link = newLink;
+        setData(newData);
+      }
+    }
   };
 
   const quickAdd = (groupId: string, e: any) => {
@@ -1026,7 +1148,6 @@ export default function App() {
     }
   };
 
-  // 💡 我的清單：toggle 勾選
   const toggleMyList = (itemId: string) => {
     const newData = JSON.parse(JSON.stringify(data));
     if (!newData.myList) newData.myList = [];
@@ -1035,7 +1156,6 @@ export default function App() {
     setData(newData);
   };
 
-  // 💡 我的清單：刪除
   const deleteMyList = (itemId: string) => {
     const newData = JSON.parse(JSON.stringify(data));
     if (!newData.myList) newData.myList = [];
@@ -1043,41 +1163,44 @@ export default function App() {
     setData(newData);
   };
 
-  // 💡 我的清單 a.現有項目：雙擊同時編輯名稱與連結
+  // 💡 1. 我的清單：雙擊開啟同一雙欄編輯 Modal 畫面
   const handleMyListDoubleTap = (item: any) => {
     const now = Date.now();
     const lastTap = myListTapRef.current[item.id] || 0;
     if (now - lastTap < 300) {
-      const newTitle = prompt('編輯項目名稱：', item.title);
-      if (newTitle !== null && newTitle.trim()) {
-        const newLink = prompt('編輯連結 (留空代表不設連結)：', item.link || '');
-        const newData = JSON.parse(JSON.stringify(data));
-        const target = newData.myList.find((i: any) => i.id === item.id);
-        if (target) {
-          target.title = newTitle.trim();
-          target.link = newLink !== null ? newLink.trim() : '';
-          setData(newData);
-        }
-      }
+      setEditModal({
+        isOpen: true,
+        title: item.title,
+        link: item.link || '',
+        type: 'mylist',
+        targetData: { itemId: item.id }
+      });
     }
     myListTapRef.current[item.id] = now;
   };
 
-  // 💡 我的清單 b.新增項目：同時新增名稱與連結
   const handleAddMyList = () => {
-    const title = prompt('請輸入項目名稱：');
-    if (!title || !title.trim()) return;
-    const link = prompt('請輸入連結 (選填，無連結直接按確定即可)：');
-    const newItem = { 
-      id: Date.now().toString(), 
-      title: title.trim(), 
-      link: link ? link.trim() : '', 
-      done: false 
-    };
-    const newData = JSON.parse(JSON.stringify(data));
-    if (!newData.myList) newData.myList = [];
-    newData.myList.push(newItem);
-    setData(newData);
+    setEditModal({
+      isOpen: true,
+      title: '',
+      link: '',
+      type: 'mylist',
+      targetData: { itemId: Date.now().toString(), isNew: true }
+    });
+  };
+
+  // 💡 特殊處理新增清單的儲存
+  const handleSaveModalWrapper = (title: string, link: string) => {
+    if (editModal.type === 'mylist' && editModal.targetData?.isNew) {
+      if (!title || !title.trim()) return;
+      const newItem = { id: editModal.targetData.itemId, title: title.trim(), link: link.trim(), done: false };
+      const newData = JSON.parse(JSON.stringify(data));
+      if (!newData.myList) newData.myList = [];
+      newData.myList.push(newItem);
+      setData(newData);
+    } else {
+      handleModalSave(title, link);
+    }
   };
 
   const getGroupProgress = (group: any) => {
@@ -1136,6 +1259,19 @@ export default function App() {
     useSensor(PointerSensor, { activationConstraint: { delay: 200, tolerance: 8 } }),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
   );
+
+  // 💡 4. 置頂排序助手：有收藏標記的項目排最前面
+  const getSortedNewsItems = (items: any[]) => {
+    if (!items) return [];
+    const favs = data.favorites || [];
+    return [...items].sort((a, b) => {
+      const aFav = favs.includes(a.id);
+      const bFav = favs.includes(b.id);
+      if (aFav && !bFav) return -1;
+      if (!aFav && bFav) return 1;
+      return 0;
+    });
+  };
 
   return (
     <div className="min-h-screen bg-gray-100 pb-28 font-sans">
@@ -1350,6 +1486,7 @@ export default function App() {
             {/* 攻略情報 Tab */}
             {activeTab === 'news' && (
               <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                
                 <div className="grid grid-cols-2 gap-4">
                   <button 
                     onClick={() => setGuideModal({ isOpen: true, park: 'land' })}
@@ -1372,25 +1509,52 @@ export default function App() {
                   </button>
                 </div>
 
+                {/* 💡 近期活動：版面優化、無連結不跳轉、⭐ 收藏置頂 */}
                 <div className="bg-white rounded-[2rem] p-5 shadow-sm border border-gray-100">
                   <h3 className="font-bold text-lg text-gray-800 mb-4 pl-1">
                     近期活動
                   </h3>
                   <div className="space-y-3">
-                    {data.news?.events?.map((ev: any) => {
-                      const mainFavicon = getFaviconUrl(ev.link);
-                      return (
-                        <div key={ev.id} className="p-4 rounded-2xl bg-gray-50 border border-gray-100">
-                          <a href={ev.link || '#'} target="_blank" rel="noreferrer" className="block group">
-                            <div className="flex items-center gap-3">
-                              {mainFavicon && <img src={mainFavicon} className="w-5 h-5 rounded object-contain shrink-0"/>}
-                              <div>
-                                <span className="font-bold text-gray-800 text-sm group-hover:text-pink-500 transition-colors block">{ev.title}</span>
-                                {ev.date && <span className="text-[11px] text-gray-400 font-medium block mt-0.5">{ev.date}</span>}
-                              </div>
-                            </div>
-                          </a>
+                    {getSortedNewsItems(data.news?.events || []).map((ev: any) => {
+                      const hasMainLink = ev.link && ev.link !== '#';
+                      const isFav = (data.favorites || []).includes(ev.id);
 
+                      return (
+                        <div key={ev.id} className={`p-4 rounded-2xl border transition-all ${isFav ? 'bg-amber-50/40 border-amber-200/80 shadow-sm' : 'bg-gray-50 border-gray-100'}`}>
+                          
+                          {/* 頂部：標題與置頂星星 */}
+                          <div className="flex items-start justify-between gap-2">
+                            <div className="flex-1 min-w-0">
+                              {hasMainLink ? (
+                                <a href={ev.link} target="_blank" rel="noreferrer" className="font-bold text-gray-800 text-sm hover:text-pink-500 transition-colors leading-snug block">
+                                  {ev.title}
+                                </a>
+                              ) : (
+                                <span className="font-bold text-gray-800 text-sm leading-snug block select-text">
+                                  {ev.title}
+                                </span>
+                              )}
+                            </div>
+
+                            {/* ⭐ 右上角空心/實心置頂星星 */}
+                            <button 
+                              onClick={() => toggleFavorite(ev.id)} 
+                              className="p-1 -mr-1 -mt-1 text-gray-300 hover:text-amber-400 active:scale-125 transition-all shrink-0"
+                              title={isFav ? "取消置頂" : "置頂此活動"}
+                            >
+                              <Star size={18} className={isFav ? "fill-amber-400 text-amber-400" : ""} />
+                            </button>
+                          </div>
+
+                          {/* 💡 3. 日期格式精緻優化：獨立膠囊標籤，排版不緊繃 */}
+                          {ev.date && (
+                            <div className="mt-2 inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-white border border-gray-200/80 text-[11px] text-gray-500 font-medium shadow-2xs">
+                              <span>📅</span>
+                              <span>{ev.date}</span>
+                            </div>
+                          )}
+
+                          {/* 下方 Quick Links */}
                           {ev.quickLinks && ev.quickLinks.length > 0 && (
                             <div className="mt-3 pt-3 border-t border-gray-200/60 flex flex-wrap gap-2">
                               {ev.quickLinks.map((q: any, qIdx: number) => (
@@ -1412,29 +1576,44 @@ export default function App() {
                   </div>
                 </div>
 
+                {/* 💡 近期新品：版面優化、無連結不跳轉、⭐ 收藏置頂 */}
                 <div className="bg-white rounded-[2rem] p-5 shadow-sm border border-gray-100">
                   <h3 className="font-bold text-lg text-gray-800 mb-4 pl-1">
                     近期新品
                   </h3>
                   <div className="space-y-2">
-                    {data.news?.products?.map((p: any) => {
-                      const favicon = getFaviconUrl(p.link);
+                    {getSortedNewsItems(data.news?.products || []).map((p: any) => {
+                      const hasMainLink = p.link && p.link !== '#';
+                      const isFav = (data.favorites || []).includes(p.id);
+
                       return (
-                        <a 
-                          key={p.id} 
-                          href={p.link || '#'} 
-                          target="_blank" 
-                          rel="noreferrer" 
-                          className="flex items-center p-3 rounded-xl bg-gray-50 hover:bg-gray-100 transition-colors group"
-                        >
-                          <div className="flex items-center gap-3">
-                            {favicon && <img src={favicon} className="w-5 h-5 rounded object-contain shrink-0"/>}
-                            <div>
-                              <span className="font-bold text-gray-700 text-sm group-hover:text-purple-600 transition-colors block">{p.title}</span>
-                              {p.date && <span className="text-[11px] text-gray-400 font-medium block mt-0.5">{p.date}</span>}
-                            </div>
+                        <div key={p.id} className={`p-3.5 rounded-xl border flex items-center justify-between gap-3 transition-all ${isFav ? 'bg-amber-50/40 border-amber-200/80 shadow-sm' : 'bg-gray-50 border-gray-100'}`}>
+                          <div className="flex-1 min-w-0">
+                            {hasMainLink ? (
+                              <a href={p.link} target="_blank" rel="noreferrer" className="font-bold text-gray-700 text-sm hover:text-purple-600 transition-colors block truncate">
+                                {p.title}
+                              </a>
+                            ) : (
+                              <span className="font-bold text-gray-700 text-sm block truncate select-text">
+                                {p.title}
+                              </span>
+                            )}
+                            {p.date && (
+                              <span className="text-[11px] text-gray-400 font-medium block mt-1">
+                                📅 {p.date}
+                              </span>
+                            )}
                           </div>
-                        </a>
+
+                          {/* ⭐ 右側置頂星星 */}
+                          <button 
+                            onClick={() => toggleFavorite(p.id)} 
+                            className="p-1 text-gray-300 hover:text-amber-400 active:scale-125 transition-all shrink-0"
+                            title={isFav ? "取消置頂" : "置頂此新品"}
+                          >
+                            <Star size={18} className={isFav ? "fill-amber-400 text-amber-400" : ""} />
+                          </button>
+                        </div>
                       );
                     })}
                   </div>
@@ -1443,7 +1622,7 @@ export default function App() {
               </div>
             )}
 
-            {/* 💡 我的清單 Tab：新增連結、雙擊編輯、刪除按鈕左側、連結 ICON 右側 */}
+            {/* 我的清單 Tab */}
             {activeTab === 'mylist' && (
               <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
                 <div className="space-y-4">
@@ -1473,7 +1652,7 @@ export default function App() {
                             {item.title}
                           </span>
                           
-                          {/* 右側按鈕區域：左側為【🗑️ 刪除】，右側為【🔗 連結Icon】 */}
+                          {/* 右側：【🗑️ 刪除】在左，【🔗 連結Icon】在右 */}
                           <div className="flex items-center gap-2 shrink-0">
                             <button 
                               onClick={(e) => { e.stopPropagation(); deleteMyList(item.id); }} 
@@ -1483,7 +1662,7 @@ export default function App() {
                               <Trash2 size={16}/>
                             </button>
 
-                            {item.link ? (
+                            {item.link && item.link !== '#' ? (
                               <a href={item.link} target="_blank" rel="noreferrer" onClick={e => e.stopPropagation()} className="p-1 block">
                                 {itemFavicon ? (
                                   <img src={itemFavicon} alt="icon" className="w-4.5 h-4.5 rounded object-contain opacity-80 hover:opacity-100" />
@@ -1513,6 +1692,15 @@ export default function App() {
 
           <ActionMenu isOpen={menuOpen} onClose={() => setMenuOpen(false)} onAction={executeAction} itemType={selectedItem?.subId ? 'sub' : 'item'} />
           
+          {/* 💡 同一畫面雙欄編輯 Modal */}
+          <ItemEditModal 
+            isOpen={editModal.isOpen}
+            onClose={() => setEditModal(prev => ({ ...prev, isOpen: false }))}
+            onSave={handleSaveModalWrapper}
+            initialTitle={editModal.title}
+            initialLink={editModal.link}
+          />
+
           <AboutModal 
             isOpen={isAboutOpen} 
             onClose={() => setIsAboutOpen(false)} 
