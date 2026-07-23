@@ -250,7 +250,6 @@ function TodoItem({ item, onToggle, onOpenMenu, tm }: any) {
       
       <div className="flex-1 min-w-0">
         <div className="flex justify-between items-start gap-2">
-          {/* 主項目：15px */}
           <span className={`block font-semibold text-[15px] leading-snug ${item.done ? 'text-gray-400 line-through' : 'text-gray-800'}`}>
             {item.title}
           </span>
@@ -258,7 +257,6 @@ function TodoItem({ item, onToggle, onOpenMenu, tm }: any) {
           {item.link && (
             <a href={item.link} target="_blank" className="shrink-0 p-0.5" onClick={e => e.stopPropagation()}>
               {mainFavicon ? (
-                /* 修正：主項目 Icon 鎖定精緻尺寸 w-5 h-5 (20px)，決不膨脹跑版 */
                 <img src={mainFavicon} alt="icon" className="w-5 h-5 rounded-md object-contain opacity-80 hover:opacity-100" />
               ) : (
                 <div className="text-pink-400 bg-pink-50 p-1 rounded-lg"><LinkIcon size={14}/></div>
@@ -280,7 +278,6 @@ function TodoItem({ item, onToggle, onOpenMenu, tm }: any) {
                     {sub.done && <CheckCircle2 size={14} className="text-white" />}
                   </div>
                   
-                  {/* 子項目：14px */}
                   <span className={`flex-1 text-sm ${sub.done ? 'text-gray-400 line-through' : 'text-gray-700'}`}>
                     {sub.title}
                   </span>
@@ -288,7 +285,6 @@ function TodoItem({ item, onToggle, onOpenMenu, tm }: any) {
                   {sub.link && (
                     <a href={sub.link} target="_blank" className="shrink-0 p-0.5" onClick={e => e.stopPropagation()}>
                       {subFavicon ? (
-                        /* 修正：子項目 Icon 放大 1-2px 至 w-[18px] h-[18px] */
                         <img src={subFavicon} alt="icon" className="w-[18px] h-[18px] rounded-md object-contain opacity-80 hover:opacity-100" />
                       ) : (
                         <ExternalLink size={15} className="text-gray-300 hover:text-pink-400"/>
@@ -332,33 +328,35 @@ interface AboutModalProps {
   onClose: () => void;
   onOpenSettings: () => void;
   aboutData: any;
+  tm: any;
 }
-const AboutModal: React.FC<AboutModalProps> = ({ isOpen, onClose, onOpenSettings, aboutData }) => {
+const AboutModal: React.FC<AboutModalProps> = ({ isOpen, onClose, onOpenSettings, aboutData, tm }) => {
   if (!isOpen) return null;
   const info = aboutData || DEFAULT_DATA.about;
+  const safeTm = tm || THEMES.cream;
 
   return (
     <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/50 backdrop-blur-md p-4 animate-in fade-in">
       <div className="relative w-full max-w-sm bg-white rounded-[2.5rem] p-6 shadow-2xl border border-white flex flex-col space-y-5">
         
-        {/* 標題區域：關於 be rea.D.y 採用 Impact 封面同款字型 + 移除右上方 ✕ 號 */}
+        {/* 2. 標題拿掉「關於」，僅呈現 be rea.D.y 封面風格字型 */}
         <div className="flex justify-between items-center border-b pb-3">
-          <h3 className="text-gray-800 flex items-center gap-1.5">
-            <span className="text-lg font-extrabold">關於</span>
-            <span className="text-2xl font-impact tracking-normal flex items-baseline uppercase">
-              be rea<span className="text-xs mx-0.5 font-sans font-bold">.</span><span className="text-3xl mx-[0.5px]">D</span><span className="text-xs mx-0.5 font-sans font-bold">.</span>y
-            </span>
+          <h3 className="text-3xl font-impact tracking-normal uppercase text-gray-800 flex items-baseline">
+            be rea<span className="text-xs mx-0.5 font-sans font-bold">.</span><span className="text-4xl mx-[0.5px]">D</span><span className="text-xs mx-0.5 font-sans font-bold">.</span>y
           </h3>
+          
+          {/* 4. 【調整設定】按鈕樣式套用使用者選擇的主題色 */}
           <button 
             onClick={() => { onClose(); onOpenSettings(); }} 
-            className="text-xs font-bold bg-pink-50 text-pink-600 px-3 py-1.5 rounded-full border border-pink-200 hover:bg-pink-100 active:scale-95 transition-all"
+            className={`text-xs font-bold px-3.5 py-1.5 rounded-full border transition-all active:scale-95 ${safeTm.bg} ${safeTm.text} ${safeTm.border}`}
           >
             ⚙️ 調整設定
           </button>
         </div>
 
+        {/* 3. 調整文案為「歡迎追蹤社群看更多攻略！」 */}
         <div className="bg-gray-50 p-3.5 rounded-2xl border border-gray-100 text-center">
-          <p className="text-sm font-bold text-gray-700">這是由 <span className="text-pink-500">tnnodisney</span> 所製作的攻略幫手 ✨</p>
+          <p className="text-sm font-bold text-gray-700">歡迎追蹤社群看更多攻略！ ✨</p>
         </div>
 
         <div className="grid grid-cols-3 gap-2">
@@ -388,6 +386,7 @@ const AboutModal: React.FC<AboutModalProps> = ({ isOpen, onClose, onOpenSettings
           </a>
         </div>
 
+        {/* 1. 串接 GSheet 的 update_notice */}
         <div className="text-xs space-y-1 bg-amber-50/60 p-3.5 rounded-2xl border border-amber-100/80">
           <div className="font-bold text-amber-800 flex items-center justify-between">
             <span>📌 更新說明</span>
@@ -398,6 +397,7 @@ const AboutModal: React.FC<AboutModalProps> = ({ isOpen, onClose, onOpenSettings
           </p>
         </div>
 
+        {/* 1. 串接 GSheet 的 disclaimer */}
         <div className="text-[11px] text-gray-400 bg-gray-50 p-3 rounded-2xl border border-gray-100 leading-relaxed">
           <span className="font-bold text-gray-500 block mb-0.5">⚠️ 注意事項</span>
           {info.disclaimer || '此 App 非官方製作，內容僅供參考。請以官方資訊為準，勿作商業用途。'}
@@ -755,7 +755,7 @@ export default function App() {
           if (fetchedFacs.length > 0) setFacilitiesDb(fetchedFacs);
         }
 
-        // Fetch About Data (精準清洗 key/value，確保 100% 讀取試算表)
+        // Fetch About Data (強效解析鍵值並同步全域)
         if (FETCH_URLS.about) {
           const aboutRes = await fetch(FETCH_URLS.about);
           if (aboutRes.ok) {
@@ -765,18 +765,18 @@ export default function App() {
             rows.forEach(r => {
               const k = (r.key || r.Key || '').trim().toLowerCase();
               const v = (r.value || r.Value || '').trim();
-              if (k && v) aboutObj[k] = v;
+              if (k) aboutObj[k] = v;
             });
 
             setData(prev => ({
               ...prev,
               about: {
-                lastUpdate: aboutObj.last_update || prev.about.lastUpdate,
-                updateNotice: aboutObj.update_notice || prev.about.updateNotice,
-                disclaimer: aboutObj.disclaimer || prev.about.disclaimer,
-                igUrl: aboutObj.ig_url || prev.about.igUrl,
-                threadsUrl: aboutObj.threads_url || prev.about.threadsUrl,
-                sponsorUrl: aboutObj.sponsor_url || prev.about.sponsorUrl
+                lastUpdate: aboutObj.last_update || prev.about?.lastUpdate || '2026/07/23',
+                updateNotice: aboutObj.update_notice || prev.about?.updateNotice || '固定每月 1 號更新，無法完全及時！有需要請自行調整內容！',
+                disclaimer: aboutObj.disclaimer || prev.about?.disclaimer || '此 App 非官方製作，內容僅供參考。請以官方資訊為準，勿作商業用途。',
+                igUrl: aboutObj.ig_url || prev.about?.igUrl || 'https://www.instagram.com/tnnodisney',
+                threadsUrl: aboutObj.threads_url || prev.about?.threadsUrl || 'https://www.threads.net/@tnnodisney',
+                sponsorUrl: aboutObj.sponsor_url || prev.about?.sponsorUrl || 'https://portaly.cc/tnnodisney'
               }
             }));
           }
@@ -1367,6 +1367,7 @@ export default function App() {
             onClose={() => setIsAboutOpen(false)} 
             onOpenSettings={() => setShowOnboarding(true)} 
             aboutData={data.about}
+            tm={tm}
           />
 
           <ParkGuideModal 
