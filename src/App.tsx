@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Settings, CheckCircle2, Link as LinkIcon, Plus, Trash2, ShoppingBag,
-Ticket, MapPin, Sparkles, Anchor, Castle, ExternalLink, ArrowRight, ArrowLeft, Edit3,
-Calendar, Upload, FolderInput, GripVertical, Copy, RotateCcw, Star, List, Map, X, Utensils,
-FerrisWheel, Search, ChevronDown, ChevronUp, Image as ImageIcon, Palette, ClipboardList, GalleryVertical, Navigation, BookOpen } from 'lucide-react';
+Ticket, Sparkles, Anchor, Castle, ExternalLink, ArrowRight, ArrowLeft, Edit3,
+Calendar, Upload, FolderInput, Copy, RotateCcw, Star, List, Map, X, Utensils,
+FerrisWheel, Search, ChevronDown, ChevronUp, Image as ImageIcon, Palette, ClipboardList, GalleryVertical, Navigation, BookOpen, Heart, Camera } from 'lucide-react';
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy, useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
@@ -42,7 +42,7 @@ const CATEGORIES: { id: FacilityType; label: string; icon: any }[] = [
 ];
 
 const DEFAULT_DATA = {
-  userProfile: { name: "", visitDate: "", coverImage: "", coverPositionY: 50, coverScale: 1, theme: "cream" },
+  userProfile: { name: "請輸入名字", visitDate: "", coverImage: "", coverPositionY: 50, coverScale: 1, theme: "cream" },
   todo: [
     {
       id: 'g1', title: '事前準備', items: [
@@ -156,7 +156,7 @@ const getFaviconUrl = (url: string) => {
 
 function PlanItem({ id, item, onDelete, index, tm }: any) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id });
-  const style = { transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? 0.5 : 1 };
+  const style = { transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? 0.6 : 1 };
   const safeTm = tm || THEMES.cream;
   
   const getIcon = (type: string) => {
@@ -172,11 +172,14 @@ function PlanItem({ id, item, onDelete, index, tm }: any) {
   };
 
   return (
-    <div ref={setNodeRef} style={style} className="bg-white p-3 mb-2 rounded-xl shadow-sm border border-gray-100 flex items-center justify-between group">
+    <div 
+      ref={setNodeRef} 
+      style={style} 
+      {...attributes} 
+      {...listeners} 
+      className={`bg-white p-3.5 mb-2 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between touch-none select-none active:scale-[0.98] transition-all ${isDragging ? 'shadow-lg border-pink-300 ring-2 ring-pink-100 z-50' : ''}`}
+    >
       <div className="flex items-center gap-3 flex-1 overflow-hidden">
-        <button {...attributes} {...listeners} className="p-2 text-gray-300 hover:text-gray-500 cursor-grab active:cursor-grabbing shrink-0 touch-none">
-          <GripVertical size={20} />
-        </button>
         <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${safeTm.bg} ${safeTm.text}`}>
           {index}
         </div>
@@ -188,12 +191,17 @@ function PlanItem({ id, item, onDelete, index, tm }: any) {
           {item.enName && <span className="text-[10px] text-gray-400 truncate">{item.enName}</span>}
         </div>
       </div>
-      {item.status && item.status !== '營運中' &&(
-        <span className={`text-[10px] px-2 py-0.5 rounded-full border mr-2 ${getStatusColor(item.status)}`}>{item.status}</span>
-      )}
-      <button onClick={() => onDelete(id)} className="text-gray-300 hover:text-red-400 p-2 shrink-0">
-        <Trash2 size={16}/>
-      </button>
+      <div className="flex items-center gap-1 shrink-0">
+        {item.status && item.status !== '營運中' && (
+          <span className={`text-[10px] px-2 py-0.5 rounded-full border mr-1 ${getStatusColor(item.status)}`}>{item.status}</span>
+        )}
+        <button 
+          onClick={(e) => { e.stopPropagation(); onDelete(id); }} 
+          className="text-gray-300 hover:text-red-400 p-1.5 rounded-lg active:bg-gray-100 transition-colors"
+        >
+          <Trash2 size={16}/>
+        </button>
+      </div>
     </div>
   );
 }
@@ -305,6 +313,88 @@ function ActionMenu({ isOpen, onClose, onAction, itemType }: any) {
     </div>
   );
 }
+
+interface AboutModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onOpenSettings: () => void;
+}
+const AboutModal: React.FC<AboutModalProps> = ({ isOpen, onClose, onOpenSettings }) => {
+  if (!isOpen) return null;
+  return (
+    <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/50 backdrop-blur-md p-4 animate-in fade-in">
+      <div className="relative w-full max-w-sm bg-white rounded-[2.5rem] p-6 shadow-2xl border border-white flex flex-col space-y-5">
+        <div className="flex justify-between items-center border-b pb-3">
+          <h3 className="font-extrabold text-lg text-gray-800 flex items-center gap-2">
+            關於 be reaDy
+          </h3>
+          <div className="flex items-center gap-2">
+            <button 
+              onClick={() => { onClose(); onOpenSettings(); }} 
+              className="text-xs font-bold bg-pink-50 text-pink-600 px-3 py-1.5 rounded-full border border-pink-200 hover:bg-pink-100 active:scale-95 transition-all"
+            >
+              ⚙️ 調整設定
+            </button>
+            <button onClick={onClose} className="p-1.5 hover:bg-gray-100 rounded-full text-gray-400"><X size={18}/></button>
+          </div>
+        </div>
+
+        <div className="bg-gray-50 p-3.5 rounded-2xl border border-gray-100 text-center">
+          <p className="text-sm font-bold text-gray-700">這是由 <span className="text-pink-500">tnnodisney</span> 所製作的攻略幫手 ✨</p>
+        </div>
+
+        <div className="grid grid-cols-3 gap-2">
+          <a 
+            href="https://www.instagram.com/tnnodisney" 
+            target="_blank" 
+            rel="noreferrer" 
+            className="flex flex-col items-center justify-center py-3 px-2 bg-gradient-to-tr from-amber-500 via-rose-500 to-purple-600 text-white rounded-2xl font-bold text-xs shadow-sm hover:opacity-90 active:scale-95 transition-all gap-1"
+          >
+            <Camera size={18}/> Instagram
+          </a>
+          <a 
+            href="https://www.threads.net/@tnnodisney" 
+            target="_blank" 
+            rel="noreferrer" 
+            className="flex flex-col items-center justify-center py-3 px-2 bg-black text-white rounded-2xl font-bold text-xs shadow-sm hover:bg-gray-800 active:scale-95 transition-all gap-1"
+          >
+            <span className="font-black text-sm">@</span> Threads
+          </a>
+          <a 
+            href="https://portaly.cc/tnnodisney" 
+            target="_blank" 
+            rel="noreferrer" 
+            className="flex flex-col items-center justify-center py-3 px-2 bg-pink-500 text-white rounded-2xl font-bold text-xs shadow-sm hover:bg-pink-600 active:scale-95 transition-all gap-1"
+          >
+            <Heart size={18}/> 小額贊助
+          </a>
+        </div>
+
+        <div className="text-xs space-y-1 bg-amber-50/60 p-3.5 rounded-2xl border border-amber-100/80">
+          <div className="font-bold text-amber-800 flex items-center justify-between">
+            <span>📌 更新說明</span>
+            <span className="text-[10px] text-amber-600 font-normal">最新：2026/07/23</span>
+          </div>
+          <p className="text-amber-700/90 text-[11px] leading-relaxed">
+            固定每月 1 號更新，無法完全及時！有需要請自行調整內容！
+          </p>
+        </div>
+
+        <div className="text-[11px] text-gray-400 bg-gray-50 p-3 rounded-2xl border border-gray-100 leading-relaxed">
+          <span className="font-bold text-gray-500 block mb-0.5">⚠️ 注意事項</span>
+          此 App 非官方製作，內容僅供參考。請以官方資訊為準，勿作商業用途。
+        </div>
+
+        <button 
+          onClick={onClose} 
+          className="w-full py-3 bg-gray-100 hover:bg-gray-200 text-gray-600 font-bold rounded-2xl text-sm transition-colors"
+        >
+          關閉
+        </button>
+      </div>
+    </div>
+  );
+};
 
 interface ParkGuideModalProps {
   isOpen: boolean;
@@ -469,13 +559,8 @@ const MapModal: React.FC<MapModalProps> = ({ isOpen, onClose, items, park, facil
         <div className="flex justify-between items-center p-4 bg-gray-50 border-b shrink-0">
           <div>
             <h3 className="font-bold text-lg text-gray-800 flex items-center gap-2">
-              <Map className="w-5 h-5 text-blue-500" /> 行程地圖 ({park === 'land' ? '陸地' : '海洋'})
+              <Map className="w-5 h-5 text-blue-500" /> 行程地圖 ({park === 'land' ? '樂園' : '海洋'})
             </h3>
-            {currentTarget && (
-              <p className="text-xs text-blue-600 font-bold mt-0.5">
-                目前檢視 [{selectedIdx + 1}]：{currentTarget.name}
-              </p>
-            )}
           </div>
           <div className="flex items-center gap-2">
             <button onClick={openExternalMap} className="text-xs bg-blue-600 text-white px-3 py-2 rounded-xl font-bold flex items-center gap-1.5 shadow-md hover:bg-blue-700 active:scale-95 transition-all">
@@ -539,9 +624,11 @@ export default function App() {
   const [isMapOpen, setIsMapOpen] = useState(false);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(true);
+  const [isAboutOpen, setIsAboutOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState<{groupId: string, itemId: string, subId?: string} | null>(null);
-  const [tempProfile, setTempProfile] = useState({ name: "", date: "", theme: "cream", image: "", positionY: 50, scale: 1 });
+  
+  const [tempProfile, setTempProfile] = useState({ name: "請輸入名字", date: "", theme: "cream", image: "", positionY: 50, scale: 1 });
   const [collapsedGroups, setCollapsedGroups] = useState<string[]>([]);
   const [showNav, setShowNav] = useState(true);
   const [guideModal, setGuideModal] = useState<{ isOpen: boolean; park: 'land' | 'sea' }>({ isOpen: false, park: 'land' });
@@ -588,7 +675,6 @@ export default function App() {
           }
         }
 
-        // 解析 News CSV (含 date 日期支援 + 多活動不被覆蓋修正)
         const newsRes = await fetch(FETCH_URLS.news);
         if (newsRes.ok) {
           const csvText = await newsRes.text();
@@ -610,7 +696,6 @@ export default function App() {
               if (title) seaGuides.push({ category: r.category || '攻略', title, link: r.link });
             } else if (type === 'event' || type === 'news_1') {
               if (title) {
-                // 以 title 做聚合作為卡片 Key，避免相同或無 ID 導致活動被覆蓋
                 const evKey = title;
                 if (!eventsMap[evKey]) {
                   eventsMap[evKey] = { id: `ev_${idx}`, title, link: r.link, date, quickLinks: [] };
@@ -662,7 +747,7 @@ export default function App() {
       if (savedData) {
         const parsed = JSON.parse(savedData);
         setData(prev => ({ ...prev, ...parsed }));
-        if (parsed.userProfile?.name) setShowOnboarding(false);
+        if (parsed.userProfile?.name && parsed.userProfile?.name !== '請輸入名字') setShowOnboarding(false);
         setTempProfile(prev => ({ ...prev, ...parsed.userProfile }));
       }
     } catch (e) { console.error(e); }
@@ -689,7 +774,7 @@ export default function App() {
 
   const handleDragEndPlan = (event: any) => {
     const { active, over } = event;
-    if (active.id !== over.id) {
+    if (active && over && active.id !== over.id) {
       setData((prev) => {
         const currentList = prev.plan[parkMode];
         const oldIndex = currentList.findIndex((i: any) => i.id === active.id);
@@ -810,7 +895,7 @@ export default function App() {
 
   const handleDragEndTodo = (event: any, groupId: string) => {
     const { active, over } = event;
-    if (active.id !== over.id) {
+    if (active && over && active.id !== over.id) {
       setData((prev) => {
         const newData = JSON.parse(JSON.stringify(prev));
         const group = newData.todo.find((g:any) => g.id === groupId);
@@ -888,7 +973,8 @@ export default function App() {
   };
 
   const finishOnboarding = () => {
-    if (!tempProfile.name || !tempProfile.date) return alert('請填寫名字和日期喔!');
+    if (!tempProfile.name || tempProfile.name === "請輸入名字") return alert('請填寫名字喔!');
+    if (!tempProfile.date) return alert('請選擇入園日期喔!');
     setData(prev => ({
       ...prev,
       userProfile: { name: tempProfile.name, visitDate: tempProfile.date, coverImage: tempProfile.image, coverPositionY: tempProfile.positionY, coverScale: tempProfile.scale, theme: tempProfile.theme }
@@ -897,7 +983,7 @@ export default function App() {
   };
 
   const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { delay: 250, tolerance: 5 } }),
+    useSensor(PointerSensor, { activationConstraint: { delay: 200, tolerance: 8 } }),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
   );
 
@@ -940,7 +1026,13 @@ export default function App() {
               
               <div>
                 <label className="block text-xs font-bold text-gray-400 mb-2 uppercase">你的名字</label>
-                <input type="text" placeholder="Bonnie" className="w-full p-4 bg-gray-100 rounded-xl font-bold text-lg outline-none focus:ring-2 focus:ring-pink-300" value={tempProfile.name} onChange={e => setTempProfile({...tempProfile, name: e.target.value})} />
+                <input 
+                  type="text" 
+                  placeholder="請輸入名字" 
+                  className="w-full p-4 bg-gray-100 rounded-xl font-bold text-lg outline-none focus:ring-2 focus:ring-pink-300" 
+                  value={tempProfile.name === "請輸入名字" ? "" : tempProfile.name} 
+                  onChange={e => setTempProfile({...tempProfile, name: e.target.value})} 
+                />
               </div>
               
               <div>
@@ -959,7 +1051,10 @@ export default function App() {
                   ))}
                 </div>
               </div>
-              <button onClick={finishOnboarding} className={`w-full py-4 rounded-xl text-white font-bold shadow-lg mt-4 ${THEMES[tempProfile.theme].primary}`}>開始規劃旅程</button>
+              
+              <button onClick={finishOnboarding} className={`w-full py-4 rounded-xl text-white font-extrabold text-lg tracking-wider shadow-lg mt-4 ${THEMES[tempProfile.theme].primary}`}>
+                START!
+              </button>
             </div>
           </div>
         </div>
@@ -992,7 +1087,12 @@ export default function App() {
               <span className="text-4xl font-black flex items-baseline justify-end gap-1">{getDaysUntil(data.userProfile.visitDate)}<span className="text-sm font-medium">天</span></span>
             </div>
             
-            <button onClick={() => setShowOnboarding(true)} className="absolute top-6 right-6 p-2 bg-white/20 backdrop-blur-md rounded-full text-white"><Settings size={20}/></button>
+            <button 
+              onClick={() => setIsAboutOpen(true)} 
+              className="absolute top-6 right-6 p-2 bg-white/20 backdrop-blur-md rounded-full text-white hover:bg-white/30 active:scale-95 transition-all"
+            >
+              <Settings size={20}/>
+            </button>
           </div>
 
           <main className="p-5 max-w-md mx-auto -mt-16 relative z-10">
@@ -1051,8 +1151,8 @@ export default function App() {
                   const isCollapsed = collapsedGroups.includes(group.id);
                   return (
                     <div key={group.id} className="bg-white rounded-[2rem] p-5 shadow-sm border border-gray-100">
-                      <div className="flex justify-between items-center mb-2 pl-2" onClick={() => toggleGroupCollapse(group.id)}>
-                        <div className="flex items-center gap-2 cursor-pointer">
+                      <div className="flex justify-between items-center mb-2 pl-2 cursor-pointer" onClick={() => toggleGroupCollapse(group.id)}>
+                        <div className="flex items-center gap-2">
                           {isCollapsed ? <ChevronDown size={20} className="text-gray-400"/> : <ChevronUp size={20} className="text-gray-400"/>}
                           <h3 className="font-bold text-lg text-gray-800">{group.title}</h3>
                         </div>
@@ -1093,11 +1193,8 @@ export default function App() {
               </div>
             )}
 
-            {/* 方案 C 【攻略情報】 Tab */}
             {activeTab === 'news' && (
               <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                
-                {/* 1. 最上方【樂園攻略】與【海洋攻略】按鈕區 */}
                 <div className="grid grid-cols-2 gap-4">
                   <button 
                     onClick={() => setGuideModal({ isOpen: true, park: 'land' })}
@@ -1122,7 +1219,6 @@ export default function App() {
                   </button>
                 </div>
 
-                {/* 2. 下方第一區塊：【近期活動】（已移除右側超連結 Icon，帶入日期） */}
                 <div className="bg-white rounded-[2rem] p-5 shadow-sm border border-gray-100">
                   <h3 className="font-bold text-lg text-gray-800 mb-4 pl-1 flex items-center gap-2">
                     <Sparkles size={18} className="text-pink-500"/> 近期活動
@@ -1142,7 +1238,6 @@ export default function App() {
                             </div>
                           </a>
 
-                          {/* Quick Links 標籤區 (無右側連結圖示) */}
                           {ev.quickLinks && ev.quickLinks.length > 0 && (
                             <div className="mt-3 pt-3 border-t border-gray-200/60 flex flex-wrap gap-2">
                               {ev.quickLinks.map((q: any, qIdx: number) => (
@@ -1164,7 +1259,6 @@ export default function App() {
                   </div>
                 </div>
 
-                {/* 3. 下方第二區塊：【近期新品】（已移除右側超連結 Icon，帶入上市日期） */}
                 <div className="bg-white rounded-[2rem] p-5 shadow-sm border border-gray-100">
                   <h3 className="font-bold text-lg text-gray-800 mb-4 pl-1 flex items-center gap-2">
                     <ShoppingBag size={18} className="text-purple-500"/> 近期新品
@@ -1223,6 +1317,12 @@ export default function App() {
 
           <ActionMenu isOpen={menuOpen} onClose={() => setMenuOpen(false)} onAction={executeAction} itemType={selectedItem?.subId ? 'sub' : 'item'} />
           
+          <AboutModal 
+            isOpen={isAboutOpen} 
+            onClose={() => setIsAboutOpen(false)} 
+            onOpenSettings={() => setShowOnboarding(true)} 
+          />
+
           <ParkGuideModal 
             isOpen={guideModal.isOpen} 
             onClose={() => setGuideModal({ isOpen: false, park: 'land' })}
