@@ -186,7 +186,6 @@ function PlanItem({ id, item, onDelete, index, tm }: any) {
         <div className="flex flex-col min-w-0">
           <div className="flex items-center gap-2 mb-0.5">
             {getIcon(item.category)}
-            {/* 行程設施名稱：16px */}
             <span className="text-gray-800 font-bold text-base truncate">{item.title}</span>
           </div>
           {item.enName && <span className="text-xs text-gray-400 truncate">{item.enName}</span>}
@@ -242,7 +241,6 @@ function TodoItem({ item, onToggle, onOpenMenu, tm }: any) {
       
       <div className="flex-1 min-w-0">
         <div className="flex justify-between items-start gap-2">
-          {/* 準備 Tab 主項目：16px (text-base) */}
           <span className={`block font-bold text-base leading-snug ${item.done ? 'text-gray-400 line-through' : 'text-gray-800'}`}>
             {item.title}
           </span>
@@ -250,9 +248,10 @@ function TodoItem({ item, onToggle, onOpenMenu, tm }: any) {
           {item.link && (
             <a href={item.link} target="_blank" className="shrink-0 p-0.5" onClick={e => e.stopPropagation()}>
               {mainFavicon ? (
-                <img src={mainFavicon} alt="icon" className="w-5.5 h-5.5 rounded-md object-contain opacity-80 hover:opacity-100" />
+                /* 主項目 Icon：鎖定 18px (w-4.5 h-4.5) */
+                <img src={mainFavicon} alt="icon" className="w-[18px] h-[18px] rounded-md object-contain opacity-80 hover:opacity-100" />
               ) : (
-                <div className="text-pink-400 bg-pink-50 p-1.5 rounded-lg"><LinkIcon size={16}/></div>
+                <div className="text-pink-400 bg-pink-50 p-1 rounded-lg"><LinkIcon size={16}/></div>
               )}
             </a>
           )}
@@ -271,7 +270,6 @@ function TodoItem({ item, onToggle, onOpenMenu, tm }: any) {
                     {sub.done && <CheckCircle2 size={15} className="text-white" />}
                   </div>
                   
-                  {/* 準備 Tab 子項目：15px (text-[15px]) */}
                   <span className={`flex-1 text-[15px] font-medium ${sub.done ? 'text-gray-400 line-through' : 'text-gray-700'}`}>
                     {sub.title}
                   </span>
@@ -279,9 +277,10 @@ function TodoItem({ item, onToggle, onOpenMenu, tm }: any) {
                   {sub.link && (
                     <a href={sub.link} target="_blank" className="shrink-0 p-0.5" onClick={e => e.stopPropagation()}>
                       {subFavicon ? (
-                        <img src={subFavicon} alt="icon" className="w-4.5 h-4.5 rounded object-contain opacity-60 hover:opacity-100" />
+                        /* 子項目 Icon：精緻版鎖定 16px (w-4 h-4) */
+                        <img src={subFavicon} alt="icon" className="w-4 h-4 rounded-md object-contain opacity-70 hover:opacity-100" />
                       ) : (
-                        <ExternalLink size={16} className="text-gray-300 hover:text-pink-400"/>
+                        <ExternalLink size={15} className="text-gray-300 hover:text-pink-400"/>
                       )}
                     </a>
                   )}
@@ -453,7 +452,7 @@ const ParkGuideModal: React.FC<ParkGuideModalProps> = ({ isOpen, onClose, title,
                       >
                         <div className="flex items-center gap-2.5">
                           {favicon ? (
-                            <img src={favicon} className="w-5 h-5 rounded object-contain" alt="icon"/>
+                            <img src={favicon} className="w-4.5 h-4.5 rounded object-contain" alt="icon"/>
                           ) : (
                             <LinkIcon size={16} className="text-pink-400"/>
                           )}
@@ -1157,7 +1156,6 @@ export default function App() {
                       <div className="flex justify-between items-center mb-2 pl-1 cursor-pointer" onClick={() => toggleGroupCollapse(group.id)}>
                         <div className="flex items-center gap-2">
                           {isCollapsed ? <ChevronDown size={24} className="text-gray-400"/> : <ChevronUp size={24} className="text-gray-400"/>}
-                          {/* 群組大標題放大：22px (text-[22px]) */}
                           <h3 className="font-bold text-[22px] text-gray-800">{group.title}</h3>
                         </div>
                         {!isCollapsed && <CircularProgress percentage={getGroupProgress(group)} colorClass={tm.text} />}
@@ -1234,7 +1232,7 @@ export default function App() {
                         <div key={ev.id} className="p-4 rounded-2xl bg-gray-50 border border-gray-100">
                           <a href={ev.link || '#'} target="_blank" rel="noreferrer" className="block group">
                             <div className="flex items-center gap-3">
-                              {mainFavicon ? <img src={mainFavicon} className="w-6 h-6 rounded object-contain"/> : <Star size={20} className="text-pink-400"/>}
+                              {mainFavicon ? <img src={mainFavicon} className="w-5 h-5 rounded object-contain"/> : <Star size={20} className="text-pink-400"/>}
                               <div>
                                 <span className="font-bold text-gray-800 text-base group-hover:text-pink-500 transition-colors block">{ev.title}</span>
                                 {ev.date && <span className="text-xs text-gray-400 font-medium block mt-0.5">{ev.date}</span>}
@@ -1279,7 +1277,7 @@ export default function App() {
                           className="flex items-center p-3.5 rounded-xl bg-gray-50 hover:bg-gray-100 transition-colors group"
                         >
                           <div className="flex items-center gap-3">
-                            {favicon ? <img src={favicon} className="w-5.5 h-5.5 rounded object-contain"/> : <ShoppingBag size={20} className="text-purple-400"/>}
+                            {favicon ? <img src={favicon} className="w-5 h-5 rounded object-contain"/> : <ShoppingBag size={20} className="text-purple-400"/>}
                             <div>
                               <span className="font-bold text-gray-700 text-base group-hover:text-purple-600 transition-colors block">{p.title}</span>
                               {p.date && <span className="text-xs text-gray-400 font-medium block mt-0.5">{p.date}</span>}
@@ -1338,7 +1336,6 @@ export default function App() {
           <AddItemModal isOpen={isAddModalOpen} onClose={() => setIsAddModalOpen(false)} onAdd={handleAddFacility} park={parkMode} facilitiesDb={facilitiesDb} />
           <MapModal isOpen={isMapOpen} onClose={() => setIsMapOpen(false)} items={data.plan[parkMode]} park={parkMode} facilitiesDb={facilitiesDb} />
           
-          {/* 底部導覽列文字完全不動（保持完美 12px） */}
           <nav className={`fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 w-full z-40 shadow-lg transition-transform duration-300 ${showNav ? 'translate-y-0' : 'translate-y-full'}`}>
             <div className="grid grid-cols-4 items-end pb-10 pt-3">
               <button onClick={() => setActiveTab('todo')} className="flex flex-col items-center gap-1 transition-all active:scale-95 group">
