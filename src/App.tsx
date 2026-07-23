@@ -205,7 +205,6 @@ const getFaviconUrl = (url: string) => {
 
 function PlanItem({ id, item, onDelete, index, tm }: any) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id });
-  // 💡 修復：改用 CSS.Translate，100% 避免扁平等比例壓扁問題！
   const style = { 
     transform: CSS.Translate.toString(transform), 
     transition, 
@@ -262,7 +261,6 @@ function PlanItem({ id, item, onDelete, index, tm }: any) {
 
 function TodoItem({ item, onToggle, onOpenMenu, tm }: any) { 
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: item.id });
-  // 💡 修復：改用 CSS.Translate，完美解決「準備」Tab 拖曳扁平變形與重疊現象！
   const style = { 
     transform: CSS.Translate.toString(transform), 
     transition, 
@@ -461,6 +459,7 @@ const AboutModal: React.FC<AboutModalProps> = ({ isOpen, onClose, onOpenSettings
   );
 };
 
+// 💡 攻略彈窗圖示改為 🏰 / 🌋
 interface ParkGuideModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -484,8 +483,8 @@ const ParkGuideModal: React.FC<ParkGuideModalProps> = ({ isOpen, onClose, parkTy
       <div className="relative w-full max-w-md bg-white/90 backdrop-blur-xl rounded-[2.5rem] p-6 shadow-2xl border border-white/50 flex flex-col max-h-[80vh] overflow-hidden">
         <div className="flex justify-between items-center mb-6 pb-2 border-b border-gray-200/50 shrink-0">
           <div className="flex items-center gap-3">
-            <div className={`w-10 h-10 rounded-2xl flex items-center justify-center text-white ${isLand ? 'bg-pink-500' : 'bg-blue-500'}`}>
-              {isLand ? <Castle size={20}/> : <Anchor size={20}/>}
+            <div className={`w-10 h-10 rounded-2xl flex items-center justify-center text-xl ${isLand ? 'bg-pink-100' : 'bg-blue-100'}`}>
+              {isLand ? '🏰' : '🌋'}
             </div>
             <div>
               <h3 className="font-bold text-lg text-gray-800">{displayTitle}</h3>
@@ -1123,7 +1122,6 @@ export default function App() {
     setShowOnboarding(false);
   };
 
-  // 💡 觸控優化：限制 delay: 200ms 與 tolerance: 8px，保證拖曳不卡頓又不壓扁
   const sensors = useSensors(
     useSensor(TouchSensor, { activationConstraint: { delay: 200, tolerance: 8 } }),
     useSensor(MouseSensor, { activationConstraint: { distance: 10 } }),
@@ -1245,14 +1243,17 @@ export default function App() {
             {activeTab === 'plan' && (
               <div className="animate-in slide-in-from-bottom-4 duration-300">
                 <div className="bg-white/80 backdrop-blur-sm p-4 rounded-[2rem] border border-white shadow-sm min-h-[400px]">
+                  
+                  {/* 💡 行程頁按鈕圖示改為 🏰 與 🌋 */}
                   <div className="flex bg-gray-100 p-1 rounded-xl mb-4">
                     <button onClick={() => setParkMode('land')} className={`flex-1 py-2 rounded-lg text-sm font-bold transition-all flex items-center justify-center gap-1.5 ${parkMode === 'land' ? 'bg-white shadow-sm text-pink-500' : 'text-gray-400 hover:text-gray-600'}`}>
-                      <Castle size={14}/> 樂園
+                      <span className="text-base">🏰</span> 樂園
                     </button>
                     <button onClick={() => setParkMode('sea')} className={`flex-1 py-2 rounded-lg text-sm font-bold transition-all flex items-center justify-center gap-1.5 ${parkMode === 'sea' ? 'bg-white shadow-sm text-blue-500' : 'text-gray-400 hover:text-gray-600'}`}>
-                      <Anchor size={14}/> 海洋
+                      <span className="text-base">🌋</span> 海洋
                     </button>
                   </div>
+                  
                   <div className="flex justify-between items-center mb-4 px-1">
                     <h3 className="font-bold text-lg flex items-center gap-2 text-gray-800">
                       一日行程 <span className="bg-white px-2 py-0.5 rounded-full text-xs text-gray-400 border font-medium">{data.plan[parkMode].length}</span>
@@ -1342,13 +1343,15 @@ export default function App() {
             {/* 攻略情報 Tab */}
             {activeTab === 'news' && (
               <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                
+                {/* 💡 攻略情報按鈕圖示改為 🏰 與 🌋 */}
                 <div className="grid grid-cols-2 gap-4">
                   <button 
                     onClick={() => setGuideModal({ isOpen: true, park: 'land' })}
                     className="bg-white p-5 rounded-[2rem] border border-gray-100 shadow-sm flex flex-col items-center justify-center text-center group hover:shadow-md transition-all active:scale-95"
                   >
-                    <div className="w-12 h-12 rounded-2xl bg-pink-100 text-pink-500 flex items-center justify-center mb-2 group-hover:scale-110 transition-transform">
-                      <Castle size={24}/>
+                    <div className="w-12 h-12 rounded-2xl bg-pink-50 flex items-center justify-center mb-2 text-2xl group-hover:scale-110 transition-transform">
+                      🏰
                     </div>
                     <span className="font-bold text-gray-800 text-base block">樂園攻略</span>
                   </button>
@@ -1357,16 +1360,17 @@ export default function App() {
                     onClick={() => setGuideModal({ isOpen: true, park: 'sea' })}
                     className="bg-white p-5 rounded-[2rem] border border-gray-100 shadow-sm flex flex-col items-center justify-center text-center group hover:shadow-md transition-all active:scale-95"
                   >
-                    <div className="w-12 h-12 rounded-2xl bg-blue-100 text-blue-500 flex items-center justify-center mb-2 group-hover:scale-110 transition-transform">
-                      <Anchor size={24}/>
+                    <div className="w-12 h-12 rounded-2xl bg-blue-50 flex items-center justify-center mb-2 text-2xl group-hover:scale-110 transition-transform">
+                      🌋
                     </div>
                     <span className="font-bold text-gray-800 text-base block">海洋攻略</span>
                   </button>
                 </div>
 
+                {/* 💡 近期活動：標題與列表圖示已完全移除，純靠 GSheet 內容呈現 */}
                 <div className="bg-white rounded-[2rem] p-5 shadow-sm border border-gray-100">
-                  <h3 className="font-bold text-lg text-gray-800 mb-4 pl-1 flex items-center gap-2">
-                    <Sparkles size={18} className="text-pink-500"/> 近期活動
+                  <h3 className="font-bold text-lg text-gray-800 mb-4 pl-1">
+                    近期活動
                   </h3>
                   <div className="space-y-3">
                     {data.news?.events?.map((ev: any) => {
@@ -1375,7 +1379,7 @@ export default function App() {
                         <div key={ev.id} className="p-4 rounded-2xl bg-gray-50 border border-gray-100">
                           <a href={ev.link || '#'} target="_blank" rel="noreferrer" className="block group">
                             <div className="flex items-center gap-3">
-                              {mainFavicon ? <img src={mainFavicon} className="w-5 h-5 rounded object-contain"/> : <Star size={18} className="text-pink-400"/>}
+                              {mainFavicon && <img src={mainFavicon} className="w-5 h-5 rounded object-contain shrink-0"/>}
                               <div>
                                 <span className="font-bold text-gray-800 text-sm group-hover:text-pink-500 transition-colors block">{ev.title}</span>
                                 {ev.date && <span className="text-[11px] text-gray-400 font-medium block mt-0.5">{ev.date}</span>}
@@ -1404,9 +1408,10 @@ export default function App() {
                   </div>
                 </div>
 
+                {/* 💡 近期新品：標題與列表圖示已完全移除，純靠 GSheet 內容呈現 */}
                 <div className="bg-white rounded-[2rem] p-5 shadow-sm border border-gray-100">
-                  <h3 className="font-bold text-lg text-gray-800 mb-4 pl-1 flex items-center gap-2">
-                    <ShoppingBag size={18} className="text-purple-500"/> 近期新品
+                  <h3 className="font-bold text-lg text-gray-800 mb-4 pl-1">
+                    近期新品
                   </h3>
                   <div className="space-y-2">
                     {data.news?.products?.map((p: any) => {
@@ -1420,7 +1425,7 @@ export default function App() {
                           className="flex items-center p-3 rounded-xl bg-gray-50 hover:bg-gray-100 transition-colors group"
                         >
                           <div className="flex items-center gap-3">
-                            {favicon ? <img src={favicon} className="w-5 h-5 rounded object-contain"/> : <ShoppingBag size={16} className="text-purple-400"/>}
+                            {favicon && <img src={favicon} className="w-5 h-5 rounded object-contain shrink-0"/>}
                             <div>
                               <span className="font-bold text-gray-700 text-sm group-hover:text-purple-600 transition-colors block">{p.title}</span>
                               {p.date && <span className="text-[11px] text-gray-400 font-medium block mt-0.5">{p.date}</span>}
