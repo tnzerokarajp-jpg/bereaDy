@@ -87,16 +87,16 @@ const DEFAULT_DATA = {
   },
   plan: { land: [] as any[], sea: [] as any[] },
   myList: [{ id: 'b1', title: '記得新增你的清單!', link: '', done: false }],
-  favorites: [] as string[] // 儲存置頂收藏 ID
+  favorites: [] as string[]
 };
 
 const THEMES: any = {
-  cream: { name: "奶油杏", bg: "bg-[#f0e0c9]/30", primary: "bg-[#f0e0c9]", text: "text-[#bfa588]", border: "border-[#f0e0c9]" },
-  purple: { name: "香芋紫", bg: "bg-[#c1b4e0]/20", primary: "bg-[#c1b4e0]", text: "text-[#9686bf]", border: "border-[#c1b4e0]" },
-  green: { name: "抹茶綠", bg: "bg-[#b6cf50]/20", primary: "bg-[#b6cf50]", text: "text-[#8ea33e]", border: "border-[#b6cf50]" },
-  cyan: { name:"海鹽藍", bg: "bg-[#79c1cd]/20", primary: "bg-[#79c1cd]", text: "text-[#5b9ca8]", border: "border-[#79c1cd]" },
-  blue: { name:"深海藍", bg: "bg-[#43669e]/10", primary: "bg-[#43669e]", text: "text-[#43669e]", border: "border-[#43669e]" },
-  pink: { name:"櫻花粉", bg: "bg-[#f0c8c8]/20", primary: "bg-[#f0c8c8]", text: "text-[#d69696]", border: "border-[#f0c8c8]" },
+  cream: { name: "奶油杏", bg: "bg-[#f0e0c9]/30", primary: "bg-[#f0e0c9]", text: "text-[#bfa588]", border: "border-[#f0e0c9]", buttonText: "text-[#8c6d4f]" },
+  purple: { name: "香芋紫", bg: "bg-[#c1b4e0]/20", primary: "bg-[#c1b4e0]", text: "text-[#9686bf]", border: "border-[#c1b4e0]", buttonText: "text-[#6b5899]" },
+  green: { name: "抹茶綠", bg: "bg-[#b6cf50]/20", primary: "bg-[#b6cf50]", text: "text-[#8ea33e]", border: "border-[#b6cf50]", buttonText: "text-[#5e6d1e]" },
+  cyan: { name:"海鹽藍", bg: "bg-[#79c1cd]/20", primary: "bg-[#79c1cd]", text: "text-[#5b9ca8]", border: "border-[#79c1cd]", buttonText: "text-[#366c77]" },
+  blue: { name:"深海藍", bg: "bg-[#43669e]/10", primary: "bg-[#43669e]", text: "text-[#43669e]", border: "border-[#43669e]", buttonText: "text-white" },
+  pink: { name:"櫻花粉", bg: "bg-[#f0c8c8]/20", primary: "bg-[#f0c8c8]", text: "text-[#d69696]", border: "border-[#f0c8c8]", buttonText: "text-[#a35b5b]" },
 };
 
 const parseCSV = (text: string) => {
@@ -205,17 +205,19 @@ const getFaviconUrl = (url: string) => {
   }
 };
 
-// 💡 1. 雙欄編輯 Modal：同時編輯名稱與連結
+// 💡 雙欄編輯 Modal：儲存按鈕動態連動主題色
 interface ItemEditModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSave: (title: string, link: string) => void;
   initialTitle: string;
   initialLink: string;
+  tm: any;
 }
-const ItemEditModal: React.FC<ItemEditModalProps> = ({ isOpen, onClose, onSave, initialTitle, initialLink }) => {
+const ItemEditModal: React.FC<ItemEditModalProps> = ({ isOpen, onClose, onSave, initialTitle, initialLink, tm }) => {
   const [title, setTitle] = useState(initialTitle);
   const [link, setLink] = useState(initialLink);
+  const safeTm = tm || THEMES.cream;
 
   useEffect(() => {
     setTitle(initialTitle);
@@ -257,7 +259,7 @@ const ItemEditModal: React.FC<ItemEditModalProps> = ({ isOpen, onClose, onSave, 
           </button>
           <button 
             onClick={() => { onSave(title, link); onClose(); }} 
-            className="flex-1 py-3 bg-pink-500 font-bold text-white rounded-xl text-sm shadow-md hover:bg-pink-600 active:scale-95 transition-all"
+            className={`flex-1 py-3 ${safeTm.primary} ${safeTm.buttonText || 'text-gray-800'} font-bold rounded-xl text-sm shadow-md hover:opacity-90 active:scale-95 transition-all`}
           >
             儲存
           </button>
@@ -596,11 +598,13 @@ const ParkGuideModal: React.FC<ParkGuideModalProps> = ({ isOpen, onClose, parkTy
   );
 };
 
-interface AddItemModalProps { isOpen: boolean; onClose: () => void; onAdd: (facility: Facility) => void; park: 'land' | 'sea'; facilitiesDb: Facility[]; }
-const AddItemModal: React.FC<AddItemModalProps> = ({ isOpen, onClose, onAdd, park, facilitiesDb }) => {
+// 💡 新增行程 Modal：分類與精緻連動主題色
+interface AddItemModalProps { isOpen: boolean; onClose: () => void; onAdd: (facility: Facility) => void; park: 'land' | 'sea'; facilitiesDb: Facility[]; tm: any; }
+const AddItemModal: React.FC<AddItemModalProps> = ({ isOpen, onClose, onAdd, park, facilitiesDb, tm }) => {
   const [selectedCategory, setSelectedCategory] = useState<FacilityType>('ride');
   const [searchTerm, setSearchTerm] = useState("");
   const [addedIds, setAddedIds] = useState<string[]>([]);
+  const safeTm = tm || THEMES.cream;
 
   if (!isOpen) return null;
   const filteredFacilities = facilitiesDb.filter(f =>
@@ -628,7 +632,11 @@ const AddItemModal: React.FC<AddItemModalProps> = ({ isOpen, onClose, onAdd, par
             const Icon = cat.icon;
             const isActive = selectedCategory === cat.id;
             return (
-              <button key={cat.id} onClick={() => setSelectedCategory(cat.id)} className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-bold whitespace-nowrap transition-all shrink-0 ${isActive ? 'bg-pink-500 text-white shadow-md' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'}`}>
+              <button 
+                key={cat.id} 
+                onClick={() => setSelectedCategory(cat.id)} 
+                className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-bold whitespace-nowrap transition-all shrink-0 ${isActive ? `${safeTm.primary} ${safeTm.buttonText || 'text-gray-800'} shadow-md` : 'bg-gray-100 text-gray-500 hover:bg-gray-200'}`}
+              >
                 <Icon size={14} /> {cat.label}
               </button>
             )
@@ -651,7 +659,7 @@ const AddItemModal: React.FC<AddItemModalProps> = ({ isOpen, onClose, onAdd, par
                   key={facility.id} 
                   onClick={() => handleFacilityClick(facility)} 
                   disabled={facility.status === '維修中'} 
-                  className={`w-full text-left p-3 rounded-xl border flex items-center justify-between group transition-all active:scale-[0.98] ${facility.status === '維修中' ? 'bg-gray-100 border-gray-200 opacity-60 cursor-not-allowed' : isJustAdded ? 'bg-pink-50 border-pink-300 ring-2 ring-pink-100' : 'bg-white border-gray-100 hover:border-pink-300 hover:shadow-sm'}`}
+                  className={`w-full text-left p-3 rounded-xl border flex items-center justify-between group transition-all active:scale-[0.98] ${facility.status === '維修中' ? 'bg-gray-100 border-gray-200 opacity-60 cursor-not-allowed' : isJustAdded ? `${safeTm.bg} ${safeTm.border} ring-2 ring-pink-100` : 'bg-white border-gray-100 hover:border-pink-300 hover:shadow-sm'}`}
                 >
                   <div>
                     <div className="font-bold text-gray-800 text-sm">{facility.name}</div>
@@ -660,7 +668,7 @@ const AddItemModal: React.FC<AddItemModalProps> = ({ isOpen, onClose, onAdd, par
                   {facility.status !== '營運中' ? (
                     <span className="text-[10px] bg-red-100 text-red-500 px-2 py-1 rounded-md font-bold">{facility.status}</span>
                   ) : isJustAdded ? (
-                    <span className="text-xs text-pink-600 font-bold px-2 py-1 bg-pink-100 rounded-lg">已新增 ✓</span>
+                    <span className={`text-xs font-bold px-2 py-1 ${safeTm.bg} ${safeTm.text} rounded-lg`}>已新增 ✓</span>
                   ) : (
                     <Plus size={18} className="text-gray-300 group-hover:text-pink-500" />
                   )}
@@ -780,7 +788,6 @@ export default function App() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState<{groupId: string, itemId: string, subId?: string} | null>(null);
   
-  // 💡 雙欄編輯 Modal 狀態
   const [editModal, setEditModal] = useState<{
     isOpen: boolean;
     title: string;
@@ -961,7 +968,6 @@ export default function App() {
     setCollapsedGroups(prev => prev.includes(groupId) ? prev.filter(id => id !== groupId) : [...prev, groupId]);
   };
 
-  // 💡 4. 星星置頂切換（收藏/取消收藏）
   const toggleFavorite = (id: string) => {
     setData(prev => {
       const currentFavs = prev.favorites || [];
@@ -1006,7 +1012,6 @@ export default function App() {
     setMenuOpen(true);
   };
 
-  // 💡 1. 編輯與連結合體為雙欄編輯 Modal 彈窗
   const executeAction = (action: string) => {
     if (!selectedItem) return;
     const { groupId, itemId, subId } = selectedItem;
@@ -1071,7 +1076,6 @@ export default function App() {
     setMenuOpen(false);
   };
 
-  // 💡 雙欄 Modal 儲存處理器
   const handleModalSave = (newTitle: string, newLink: string) => {
     if (editModal.type === 'todo') {
       const { groupId, itemId, subId } = editModal.targetData;
@@ -1163,7 +1167,6 @@ export default function App() {
     setData(newData);
   };
 
-  // 💡 1. 我的清單：雙擊開啟同一雙欄編輯 Modal 畫面
   const handleMyListDoubleTap = (item: any) => {
     const now = Date.now();
     const lastTap = myListTapRef.current[item.id] || 0;
@@ -1189,7 +1192,6 @@ export default function App() {
     });
   };
 
-  // 💡 特殊處理新增清單的儲存
   const handleSaveModalWrapper = (title: string, link: string) => {
     if (editModal.type === 'mylist' && editModal.targetData?.isNew) {
       if (!title || !title.trim()) return;
@@ -1260,7 +1262,6 @@ export default function App() {
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
   );
 
-  // 💡 4. 置頂排序助手：有收藏標記的項目排最前面
   const getSortedNewsItems = (items: any[]) => {
     if (!items) return [];
     const favs = data.favorites || [];
@@ -1509,7 +1510,7 @@ export default function App() {
                   </button>
                 </div>
 
-                {/* 💡 近期活動：版面優化、無連結不跳轉、⭐ 收藏置頂 */}
+                {/* 近期活動 */}
                 <div className="bg-white rounded-[2rem] p-5 shadow-sm border border-gray-100">
                   <h3 className="font-bold text-lg text-gray-800 mb-4 pl-1">
                     近期活動
@@ -1522,7 +1523,6 @@ export default function App() {
                       return (
                         <div key={ev.id} className={`p-4 rounded-2xl border transition-all ${isFav ? 'bg-amber-50/40 border-amber-200/80 shadow-sm' : 'bg-gray-50 border-gray-100'}`}>
                           
-                          {/* 頂部：標題與置頂星星 */}
                           <div className="flex items-start justify-between gap-2">
                             <div className="flex-1 min-w-0">
                               {hasMainLink ? (
@@ -1536,7 +1536,6 @@ export default function App() {
                               )}
                             </div>
 
-                            {/* ⭐ 右上角空心/實心置頂星星 */}
                             <button 
                               onClick={() => toggleFavorite(ev.id)} 
                               className="p-1 -mr-1 -mt-1 text-gray-300 hover:text-amber-400 active:scale-125 transition-all shrink-0"
@@ -1546,7 +1545,6 @@ export default function App() {
                             </button>
                           </div>
 
-                          {/* 💡 3. 日期格式精緻優化：獨立膠囊標籤，排版不緊繃 */}
                           {ev.date && (
                             <div className="mt-2 inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-white border border-gray-200/80 text-[11px] text-gray-500 font-medium shadow-2xs">
                               <span>📅</span>
@@ -1554,7 +1552,7 @@ export default function App() {
                             </div>
                           )}
 
-                          {/* 下方 Quick Links */}
+                          {/* 💡 2. Quick Links 按鈕樣式連動主題色 */}
                           {ev.quickLinks && ev.quickLinks.length > 0 && (
                             <div className="mt-3 pt-3 border-t border-gray-200/60 flex flex-wrap gap-2">
                               {ev.quickLinks.map((q: any, qIdx: number) => (
@@ -1563,7 +1561,7 @@ export default function App() {
                                   href={q.link} 
                                   target="_blank" 
                                   rel="noreferrer" 
-                                  className="text-[11px] font-bold bg-white text-gray-600 px-3 py-1.5 rounded-xl border border-gray-200 hover:border-pink-300 hover:text-pink-500 transition-colors shadow-2xs"
+                                  className={`text-[11px] font-bold bg-white text-gray-600 px-3 py-1.5 rounded-xl border border-gray-200 transition-all shadow-2xs hover:${tm.border} hover:${tm.text}`}
                                 >
                                   {q.label}
                                 </a>
@@ -1576,7 +1574,7 @@ export default function App() {
                   </div>
                 </div>
 
-                {/* 💡 近期新品：版面優化、無連結不跳轉、⭐ 收藏置頂 */}
+                {/* 近期新品：1. 恢復 Icon 縮圖 */}
                 <div className="bg-white rounded-[2rem] p-5 shadow-sm border border-gray-100">
                   <h3 className="font-bold text-lg text-gray-800 mb-4 pl-1">
                     近期新品
@@ -1585,27 +1583,36 @@ export default function App() {
                     {getSortedNewsItems(data.news?.products || []).map((p: any) => {
                       const hasMainLink = p.link && p.link !== '#';
                       const isFav = (data.favorites || []).includes(p.id);
+                      const favicon = getFaviconUrl(p.link);
 
                       return (
                         <div key={p.id} className={`p-3.5 rounded-xl border flex items-center justify-between gap-3 transition-all ${isFav ? 'bg-amber-50/40 border-amber-200/80 shadow-sm' : 'bg-gray-50 border-gray-100'}`}>
-                          <div className="flex-1 min-w-0">
-                            {hasMainLink ? (
-                              <a href={p.link} target="_blank" rel="noreferrer" className="font-bold text-gray-700 text-sm hover:text-purple-600 transition-colors block truncate">
-                                {p.title}
-                              </a>
+                          <div className="flex items-center gap-3 flex-1 min-w-0">
+                            {/* 💡 1. 恢復 Favicon / 購物袋 Icon */}
+                            {favicon ? (
+                              <img src={favicon} className="w-5 h-5 rounded object-contain shrink-0"/>
                             ) : (
-                              <span className="font-bold text-gray-700 text-sm block truncate select-text">
-                                {p.title}
-                              </span>
+                              <ShoppingBag size={18} className="text-purple-400 shrink-0"/>
                             )}
-                            {p.date && (
-                              <span className="text-[11px] text-gray-400 font-medium block mt-1">
-                                📅 {p.date}
-                              </span>
-                            )}
+
+                            <div className="flex-1 min-w-0">
+                              {hasMainLink ? (
+                                <a href={p.link} target="_blank" rel="noreferrer" className="font-bold text-gray-700 text-sm hover:text-purple-600 transition-colors block truncate">
+                                  {p.title}
+                                </a>
+                              ) : (
+                                <span className="font-bold text-gray-700 text-sm block truncate select-text">
+                                  {p.title}
+                                </span>
+                              )}
+                              {p.date && (
+                                <span className="text-[11px] text-gray-400 font-medium block mt-0.5">
+                                  📅 {p.date}
+                                </span>
+                              )}
+                            </div>
                           </div>
 
-                          {/* ⭐ 右側置頂星星 */}
                           <button 
                             onClick={() => toggleFavorite(p.id)} 
                             className="p-1 text-gray-300 hover:text-amber-400 active:scale-125 transition-all shrink-0"
@@ -1626,10 +1633,12 @@ export default function App() {
             {activeTab === 'mylist' && (
               <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
                 <div className="space-y-4">
+                  
+                  {/* 💡 3. 清單說明文字精簡（移除括號文字） */}
                   <div className="bg-white p-6 rounded-[2rem] shadow-sm border border-gray-100 text-center mb-4">
                     <ShoppingBag size={32} className={`mx-auto mb-2 ${tm.text} opacity-20`} />
                     <h3 className="text-gray-800 font-bold">我的清單</h3>
-                    <p className="text-gray-400 text-xs mt-1">必買商品、必吃美食都記在這裡！(雙擊項目可編輯名稱與連結)</p>
+                    <p className="text-gray-400 text-xs mt-1">必買商品、必吃美食都記在這裡！</p>
                   </div>
 
                   <div className="space-y-3">
@@ -1652,16 +1661,8 @@ export default function App() {
                             {item.title}
                           </span>
                           
-                          {/* 右側：【🗑️ 刪除】在左，【🔗 連結Icon】在右 */}
+                          {/* 💡 4. 順序調整：[🔗 連結/Favicon] 在左，[🗑️ 刪除] 在最右 */}
                           <div className="flex items-center gap-2 shrink-0">
-                            <button 
-                              onClick={(e) => { e.stopPropagation(); deleteMyList(item.id); }} 
-                              className="text-gray-300 hover:text-red-400 p-1 rounded-lg transition-colors"
-                              title="刪除"
-                            >
-                              <Trash2 size={16}/>
-                            </button>
-
                             {item.link && item.link !== '#' ? (
                               <a href={item.link} target="_blank" rel="noreferrer" onClick={e => e.stopPropagation()} className="p-1 block">
                                 {itemFavicon ? (
@@ -1670,9 +1671,15 @@ export default function App() {
                                   <ExternalLink size={16} className="text-pink-400 hover:text-pink-600"/>
                                 )}
                               </a>
-                            ) : (
-                              <span className="w-4.5 h-4.5 block"></span>
-                            )}
+                            ) : null}
+
+                            <button 
+                              onClick={(e) => { e.stopPropagation(); deleteMyList(item.id); }} 
+                              className="text-gray-300 hover:text-red-400 p-1 rounded-lg transition-colors"
+                              title="刪除"
+                            >
+                              <Trash2 size={16}/>
+                            </button>
                           </div>
                         </div>
                       );
@@ -1681,7 +1688,7 @@ export default function App() {
 
                   <button 
                     onClick={handleAddMyList} 
-                    className={`w-full mt-4 px-6 py-4 rounded-xl ${tm.primary} text-white font-bold shadow-lg hover:opacity-90 active:scale-95 transition-all flex items-center justify-center gap-2`}
+                    className={`w-full mt-4 px-6 py-4 rounded-xl ${tm.primary} ${tm.buttonText || 'text-white'} font-bold shadow-lg hover:opacity-90 active:scale-95 transition-all flex items-center justify-center gap-2`}
                   >
                     <Plus size={20}/> 新增項目
                   </button>
@@ -1692,13 +1699,13 @@ export default function App() {
 
           <ActionMenu isOpen={menuOpen} onClose={() => setMenuOpen(false)} onAction={executeAction} itemType={selectedItem?.subId ? 'sub' : 'item'} />
           
-          {/* 💡 同一畫面雙欄編輯 Modal */}
           <ItemEditModal 
             isOpen={editModal.isOpen}
             onClose={() => setEditModal(prev => ({ ...prev, isOpen: false }))}
             onSave={handleSaveModalWrapper}
             initialTitle={editModal.title}
             initialLink={editModal.link}
+            tm={tm}
           />
 
           <AboutModal 
@@ -1716,7 +1723,7 @@ export default function App() {
             guides={guideModal.park === 'land' ? (data.news?.landGuides || []) : (data.news?.seaGuides || [])}
           />
 
-          <AddItemModal isOpen={isAddModalOpen} onClose={() => setIsAddModalOpen(false)} onAdd={handleAddFacility} park={parkMode} facilitiesDb={facilitiesDb} />
+          <AddItemModal isOpen={isAddModalOpen} onClose={() => setIsAddModalOpen(false)} onAdd={handleAddFacility} park={parkMode} facilitiesDb={facilitiesDb} tm={tm} />
           <MapModal isOpen={isMapOpen} onClose={() => setIsMapOpen(false)} items={data.plan[parkMode]} park={parkMode} facilitiesDb={facilitiesDb} />
           
           <nav className={`fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 w-full z-40 shadow-lg transition-transform duration-300 ${showNav ? 'translate-y-0' : 'translate-y-full'}`}>
