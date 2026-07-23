@@ -11,7 +11,7 @@ const FETCH_URLS = {
   todo: `https://docs.google.com/spreadsheets/d/e/2PACX-1vRje60W_cKpfMVkve6yefpGxOLkDgOt7DMSNqA03N6Hdkn0aGKhVY4T-6r-2FQVaMRWQJ6bmcdUU8wt/pub?gid=1621130&single=true&output=csv`,
   news: `https://docs.google.com/spreadsheets/d/e/2PACX-1vRje60W_cKpfMVkve6yefpGxOLkDgOt7DMSNqA03N6Hdkn0aGKhVY4T-6r-2FQVaMRWQJ6bmcdUU8wt/pub?gid=1795040225&single=true&output=csv`,
   facilities: `https://docs.google.com/spreadsheets/d/e/2PACX-1vRje60W_cKpfMVkve6yefpGxOLkDgOt7DMSNqA03N6Hdkn0aGKhVY4T-6r-2FQVaMRWQJ6bmcdUU8wt/pub?gid=1441183205&single=true&output=csv`,
-  about: `https://docs.google.com/spreadsheets/d/e/2PACX-1vRje60W_cKpfMVkve6yefpGxOLkDgOt7DMSNqA03N6Hdkn0aGKhVY4T-6r-2FQVaMRWQJ6bmcdUU8wt/pub?gid=1639751527&single=true&output=csv`,
+  about: `https://docs.google.com/spreadsheets/d/e/2PACX-1vRje60W_cKpfMVkve6yefpGxOLkDgOt7DMSNqA03N6Hdkn0aGKhVY4T-6r-2FQVaMRWQJ6bmcdUU8wt/pub?gid=0&single=true&output=csv`,
 };
 
 type FacilityType = 'ride' | 'show' | 'food' | 'shop';
@@ -98,15 +98,56 @@ const THEMES: any = {
   pink: { name:"櫻花粉", bg: "bg-[#f0c8c8]/20", primary: "bg-[#f0c8c8]", text: "text-[#d69696]", border: "border-[#f0c8c8]" },
 };
 
+// 💡 強效 CSV 解析器：完全支援單個儲存格內按 Alt+Enter 換行
 const parseCSV = (text: string) => {
-  const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 0);
-  if (lines.length < 2) return [];
-  const headers = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g, ''));
-  return lines.slice(1).map(line => {
-    const values = line.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(v => v.trim().replace(/^"|"$/g, ''));
-    const row: any = {};
-    headers.forEach((h, i) => { row[h] = values[i] || ''; });
-    return row;
+  const rows: string[][] = [];
+  let currentRow: string[] = [];
+  let currentField = '';
+  let inQuotes = false;
+
+  for (let i = 0; i < text.length; i++) {
+    const char = text[i];
+    const nextChar = text[i + 1];
+
+    if (char === '"') {
+      if (inQuotes && nextChar === '"') {
+        currentField += '"';
+        i++;
+      } else {
+        inQuotes = !inQuotes;
+      }
+    } else if (char === ',' && !inQuotes) {
+      currentRow.push(currentField.trim());
+      currentField = '';
+    } else if ((char === '\r' || char === '\n') && !inQuotes) {
+      if (char === '\r' && nextChar === '\n') i++;
+      currentRow.push(currentField.trim());
+      if (currentRow.some(cell => cell.length > 0)) {
+        rows.push(currentRow);
+      }
+      currentRow = [];
+      currentField = '';
+    } else {
+      currentField += char;
+    }
+  }
+
+  if (currentField || currentRow.length > 0) {
+    currentRow.push(currentField.trim());
+    if (currentRow.some(cell => cell.length > 0)) {
+      rows.push(currentRow);
+    }
+  }
+
+  if (rows.length < 2) return [];
+
+  const headers = rows[0].map(h => h.replace(/^"|"$/g, '').trim());
+  return rows.slice(1).map(row => {
+    const obj: any = {};
+    headers.forEach((h, idx) => {
+      obj[h] = row[idx] ? row[idx].replace(/^"|"$/g, '').trim() : '';
+    });
+    return obj;
   });
 };
 
@@ -339,13 +380,11 @@ const AboutModal: React.FC<AboutModalProps> = ({ isOpen, onClose, onOpenSettings
     <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/50 backdrop-blur-md p-4 animate-in fade-in">
       <div className="relative w-full max-w-sm bg-white rounded-[2.5rem] p-6 shadow-2xl border border-white flex flex-col space-y-5">
         
-        {/* 2. 標題拿掉「關於」，僅呈現 be rea.D.y 封面風格字型 */}
         <div className="flex justify-between items-center border-b pb-3">
           <h3 className="text-3xl font-impact tracking-normal uppercase text-gray-800 flex items-baseline">
             be rea<span className="text-xs mx-0.5 font-sans font-bold">.</span><span className="text-4xl mx-[0.5px]">D</span><span className="text-xs mx-0.5 font-sans font-bold">.</span>y
           </h3>
           
-          {/* 4. 【調整設定】按鈕樣式套用使用者選擇的主題色 */}
           <button 
             onClick={() => { onClose(); onOpenSettings(); }} 
             className={`text-xs font-bold px-3.5 py-1.5 rounded-full border transition-all active:scale-95 ${safeTm.bg} ${safeTm.text} ${safeTm.border}`}
@@ -354,7 +393,6 @@ const AboutModal: React.FC<AboutModalProps> = ({ isOpen, onClose, onOpenSettings
           </button>
         </div>
 
-        {/* 3. 調整文案為「歡迎追蹤社群看更多攻略！」 */}
         <div className="bg-gray-50 p-3.5 rounded-2xl border border-gray-100 text-center">
           <p className="text-sm font-bold text-gray-700">歡迎追蹤社群看更多攻略！ ✨</p>
         </div>
@@ -386,19 +424,19 @@ const AboutModal: React.FC<AboutModalProps> = ({ isOpen, onClose, onOpenSettings
           </a>
         </div>
 
-        {/* 1. 串接 GSheet 的 update_notice */}
+        {/* 1. 支援 whitespace-pre-line 多行展示 */}
         <div className="text-xs space-y-1 bg-amber-50/60 p-3.5 rounded-2xl border border-amber-100/80">
           <div className="font-bold text-amber-800 flex items-center justify-between">
             <span>📌 更新說明</span>
             <span className="text-[10px] text-amber-600 font-normal">最新：{info.lastUpdate || '2026/07/23'}</span>
           </div>
-          <p className="text-amber-700/90 text-[11px] leading-relaxed">
+          <p className="text-amber-700/90 text-[11px] leading-relaxed whitespace-pre-line">
             {info.updateNotice || '固定每月 1 號更新，無法完全及時！有需要請自行調整內容！'}
           </p>
         </div>
 
-        {/* 1. 串接 GSheet 的 disclaimer */}
-        <div className="text-[11px] text-gray-400 bg-gray-50 p-3 rounded-2xl border border-gray-100 leading-relaxed">
+        {/* 1. 支援 whitespace-pre-line 多行展示 */}
+        <div className="text-[11px] text-gray-400 bg-gray-50 p-3 rounded-2xl border border-gray-100 leading-relaxed whitespace-pre-line">
           <span className="font-bold text-gray-500 block mb-0.5">⚠️ 注意事項</span>
           {info.disclaimer || '此 App 非官方製作，內容僅供參考。請以官方資訊為準，勿作商業用途。'}
         </div>
@@ -755,7 +793,7 @@ export default function App() {
           if (fetchedFacs.length > 0) setFacilitiesDb(fetchedFacs);
         }
 
-        // Fetch About Data (強效解析鍵值並同步全域)
+        // Fetch About Data (全新 Smart CSV 解析 logic，完全相容換行)
         if (FETCH_URLS.about) {
           const aboutRes = await fetch(FETCH_URLS.about);
           if (aboutRes.ok) {
