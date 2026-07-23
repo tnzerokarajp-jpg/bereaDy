@@ -203,10 +203,14 @@ const getFaviconUrl = (url: string) => {
   }
 };
 
-// 項目 4 修正：絕對固定的字級與 Icon 尺寸，防止長名字壓縮跳動
 function PlanItem({ id, item, onDelete, index, tm }: any) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id });
-  const style = { transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? 0.6 : 1 };
+  // 💡 修復：改用 CSS.Translate，100% 避免扁平等比例壓扁問題！
+  const style = { 
+    transform: CSS.Translate.toString(transform), 
+    transition, 
+    opacity: isDragging ? 0.8 : 1 
+  };
   const safeTm = tm || THEMES.cream;
   
   const getIcon = (type: string) => {
@@ -227,7 +231,7 @@ function PlanItem({ id, item, onDelete, index, tm }: any) {
       style={style} 
       {...attributes} 
       {...listeners} 
-      className={`bg-white p-3.5 mb-2 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between touch-none select-none active:scale-[0.98] transition-all ${isDragging ? 'shadow-lg border-pink-300 ring-2 ring-pink-100 z-50' : ''}`}
+      className={`bg-white p-3.5 mb-2 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between touch-none select-none active:scale-[0.98] transition-all w-full box-border ${isDragging ? 'shadow-xl border-pink-300 ring-2 ring-pink-100 z-50 bg-white' : ''}`}
     >
       <div className="flex items-center gap-3 flex-1 min-w-0 pr-2">
         <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${safeTm.bg} ${safeTm.text}`}>
@@ -258,7 +262,12 @@ function PlanItem({ id, item, onDelete, index, tm }: any) {
 
 function TodoItem({ item, onToggle, onOpenMenu, tm }: any) { 
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: item.id });
-  const style = { transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? 0.5 : 1 };
+  // 💡 修復：改用 CSS.Translate，完美解決「準備」Tab 拖曳扁平變形與重疊現象！
+  const style = { 
+    transform: CSS.Translate.toString(transform), 
+    transition, 
+    opacity: isDragging ? 0.85 : 1 
+  };
   const safeTm = tm || THEMES.cream; 
   const lastTapRef = useRef<number>(0);
 
@@ -277,7 +286,7 @@ function TodoItem({ item, onToggle, onOpenMenu, tm }: any) {
     <div 
       ref={setNodeRef} 
       style={style} 
-      className={`bg-white p-4 rounded-2xl border border-gray-100 shadow-sm flex items-start gap-3 relative select-none transition-shadow touch-none ${isDragging ? 'shadow-lg border-pink-200 z-50' : ''}`}
+      className={`bg-white p-4 rounded-2xl border border-gray-100 shadow-sm flex items-start gap-3 relative select-none transition-shadow touch-none w-full box-border ${isDragging ? 'shadow-xl border-pink-300 ring-2 ring-pink-100 z-50 bg-white' : ''}`}
       {...attributes} 
       {...listeners}
       onClick={(e) => handleDoubleTap(e)}
@@ -342,7 +351,6 @@ function TodoItem({ item, onToggle, onOpenMenu, tm }: any) {
   );
 }
 
-// 項目 2b 修正：將改名與連結濃縮成一個【編輯】按鈕
 function ActionMenu({ isOpen, onClose, onAction, itemType }: any) {
   if (!isOpen) return null;
   const isSub = itemType === 'sub';
@@ -453,7 +461,6 @@ const AboutModal: React.FC<AboutModalProps> = ({ isOpen, onClose, onOpenSettings
   );
 };
 
-// 項目 3c 修正：標題不放英文，改為「樂園攻略」/「海洋攻略」，副標題「園區文章全輯」
 interface ParkGuideModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -527,7 +534,6 @@ const ParkGuideModal: React.FC<ParkGuideModalProps> = ({ isOpen, onClose, parkTy
   );
 };
 
-// 項目 4 修正：連續新增行程（移除點擊 item 後自動關閉 modal 的邏輯）
 interface AddItemModalProps { isOpen: boolean; onClose: () => void; onAdd: (facility: Facility) => void; park: 'land' | 'sea'; facilitiesDb: Facility[]; }
 const AddItemModal: React.FC<AddItemModalProps> = ({ isOpen, onClose, onAdd, park, facilitiesDb }) => {
   const [selectedCategory, setSelectedCategory] = useState<FacilityType>('ride');
@@ -718,7 +724,6 @@ export default function App() {
   const [guideModal, setGuideModal] = useState<{ isOpen: boolean; park: 'land' | 'sea' }>({ isOpen: false, park: 'land' });
   const lastScrollY = useRef(0);
 
-  // 用於「我的清單」雙擊判斷
   const myListTapRef = useRef<{ [key: string]: number }>({});
 
   useEffect(() => {
@@ -920,7 +925,6 @@ export default function App() {
     setMenuOpen(true);
   };
 
-  // 項目 2b：編輯與連結合體為單一「編輯」功能
   const executeAction = (action: string) => {
     if (!selectedItem) return;
     const { groupId, itemId, subId } = selectedItem;
@@ -1024,7 +1028,6 @@ export default function App() {
     }
   };
 
-  // 項目 5a & 5b：「我的清單」編輯、刪除、雙擊編輯、連結位置
   const toggleMyList = (itemId: string) => {
     const newData = JSON.parse(JSON.stringify(data));
     if (!newData.myList) newData.myList = [];
@@ -1120,11 +1123,11 @@ export default function App() {
     setShowOnboarding(false);
   };
 
-  // 項目 2a 修正：優化觸控與滑動感應，增加 TouchSensor 延遲避免與網頁捲動發生衝突
+  // 💡 觸控優化：限制 delay: 200ms 與 tolerance: 8px，保證拖曳不卡頓又不壓扁
   const sensors = useSensors(
-    useSensor(TouchSensor, { activationConstraint: { delay: 250, tolerance: 5 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 200, tolerance: 8 } }),
     useSensor(MouseSensor, { activationConstraint: { distance: 10 } }),
-    useSensor(PointerSensor, { activationConstraint: { delay: 250, tolerance: 5 } }),
+    useSensor(PointerSensor, { activationConstraint: { delay: 200, tolerance: 8 } }),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
   );
 
@@ -1339,7 +1342,6 @@ export default function App() {
             {/* 攻略情報 Tab */}
             {activeTab === 'news' && (
               <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                {/* 項目 3a & 3b 修正：按鈕移除了副標題 */}
                 <div className="grid grid-cols-2 gap-4">
                   <button 
                     onClick={() => setGuideModal({ isOpen: true, park: 'land' })}
@@ -1462,7 +1464,6 @@ export default function App() {
                             {item.title}
                           </span>
                           
-                          {/* 項目 5a 修正：刪除按鈕，其右側放連結按鈕 */}
                           <div className="flex items-center gap-2 shrink-0">
                             <button 
                               onClick={(e) => { e.stopPropagation(); deleteMyList(item.id); }} 
@@ -1513,7 +1514,6 @@ export default function App() {
           <AddItemModal isOpen={isAddModalOpen} onClose={() => setIsAddModalOpen(false)} onAdd={handleAddFacility} park={parkMode} facilitiesDb={facilitiesDb} />
           <MapModal isOpen={isMapOpen} onClose={() => setIsMapOpen(false)} items={data.plan[parkMode]} park={parkMode} facilitiesDb={facilitiesDb} />
           
-          {/* 項目 1 修正：最下方導覽列名稱調成經典且清晰的名稱 */}
           <nav className={`fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 w-full z-40 shadow-lg transition-transform duration-300 ${showNav ? 'translate-y-0' : 'translate-y-full'}`}>
             <div className="grid grid-cols-4 items-end pb-10 pt-3">
               <button onClick={() => setActiveTab('todo')} className="flex flex-col items-center gap-1 transition-all active:scale-95 group">
