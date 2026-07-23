@@ -3,7 +3,7 @@ import { Settings, CheckCircle2, Link as LinkIcon, Plus, Trash2, ShoppingBag,
 Ticket, Sparkles, Anchor, Castle, ExternalLink, ArrowRight, ArrowLeft, Edit3,
 Calendar, Upload, FolderInput, Copy, RotateCcw, Star, List, Map, X, Utensils,
 FerrisWheel, Search, ChevronDown, ChevronUp, Image as ImageIcon, Palette, ClipboardList, GalleryVertical, Navigation, BookOpen, Heart, Camera } from 'lucide-react';
-import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
+import { DndContext, closestCenter, KeyboardSensor, PointerSensor, TouchSensor, MouseSensor, useSensor, useSensors } from '@dnd-kit/core';
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy, useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 
@@ -86,7 +86,7 @@ const DEFAULT_DATA = {
     sponsorUrl: 'https://portaly.cc/tnnodisney'
   },
   plan: { land: [] as any[], sea: [] as any[] },
-  myList: [{ id: 'b1', title: '記得新增你的清單!', done: false }]
+  myList: [{ id: 'b1', title: '記得新增你的清單!', link: '', done: false }]
 };
 
 const THEMES: any = {
@@ -98,7 +98,6 @@ const THEMES: any = {
   pink: { name:"櫻花粉", bg: "bg-[#f0c8c8]/20", primary: "bg-[#f0c8c8]", text: "text-[#d69696]", border: "border-[#f0c8c8]" },
 };
 
-// 💡 強效 CSV 解析器：完全支援單個儲存格內按 Alt+Enter 換行
 const parseCSV = (text: string) => {
   const rows: string[][] = [];
   let currentRow: string[] = [];
@@ -204,6 +203,7 @@ const getFaviconUrl = (url: string) => {
   }
 };
 
+// 項目 4 修正：絕對固定的字級與 Icon 尺寸，防止長名字壓縮跳動
 function PlanItem({ id, item, onDelete, index, tm }: any) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id });
   const style = { transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? 0.6 : 1 };
@@ -212,7 +212,7 @@ function PlanItem({ id, item, onDelete, index, tm }: any) {
   const getIcon = (type: string) => {
     const cat = CATEGORIES.find(c => c.id === type);
     const Icon = cat ? cat.icon : Sparkles;
-    return <Icon size={18} className="text-gray-500"/>;
+    return <Icon size={18} className="text-gray-500 shrink-0"/>;
   };
   
   const getStatusColor = (status: string) => {
@@ -229,25 +229,25 @@ function PlanItem({ id, item, onDelete, index, tm }: any) {
       {...listeners} 
       className={`bg-white p-3.5 mb-2 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between touch-none select-none active:scale-[0.98] transition-all ${isDragging ? 'shadow-lg border-pink-300 ring-2 ring-pink-100 z-50' : ''}`}
     >
-      <div className="flex items-center gap-3 flex-1 overflow-hidden">
+      <div className="flex items-center gap-3 flex-1 min-w-0 pr-2">
         <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${safeTm.bg} ${safeTm.text}`}>
           {index}
         </div>
-        <div className="flex flex-col min-w-0">
-          <div className="flex items-center gap-2 mb-0.5">
+        <div className="flex flex-col min-w-0 flex-1">
+          <div className="flex items-center gap-2 mb-0.5 min-w-0">
             {getIcon(item.category)}
-            <span className="text-gray-800 font-bold text-[15px] truncate">{item.title}</span>
+            <span className="text-gray-800 font-bold text-[15px] truncate shrink-0 max-w-[200px] sm:max-w-xs">{item.title}</span>
           </div>
-          {item.enName && <span className="text-xs text-gray-400 truncate">{item.enName}</span>}
+          {item.enName && <span className="text-xs text-gray-400 truncate block shrink-0">{item.enName}</span>}
         </div>
       </div>
       <div className="flex items-center gap-1 shrink-0">
         {item.status && item.status !== '營運中' && (
-          <span className={`text-xs px-2.5 py-0.5 rounded-full border mr-1 ${getStatusColor(item.status)}`}>{item.status}</span>
+          <span className={`text-xs px-2.5 py-0.5 rounded-full border mr-1 font-medium shrink-0 ${getStatusColor(item.status)}`}>{item.status}</span>
         )}
         <button 
           onClick={(e) => { e.stopPropagation(); onDelete(id); }} 
-          className="text-gray-300 hover:text-red-400 p-1.5 rounded-lg active:bg-gray-100 transition-colors"
+          className="text-gray-300 hover:text-red-400 p-1.5 rounded-lg active:bg-gray-100 transition-colors shrink-0"
         >
           <Trash2 size={16}/>
         </button>
@@ -277,7 +277,7 @@ function TodoItem({ item, onToggle, onOpenMenu, tm }: any) {
     <div 
       ref={setNodeRef} 
       style={style} 
-      className={`bg-white p-4 rounded-2xl border border-gray-100 shadow-sm flex items-start gap-3 relative select-none transition-shadow ${isDragging ? 'shadow-lg border-pink-200 z-50' : ''}`}
+      className={`bg-white p-4 rounded-2xl border border-gray-100 shadow-sm flex items-start gap-3 relative select-none transition-shadow touch-none ${isDragging ? 'shadow-lg border-pink-200 z-50' : ''}`}
       {...attributes} 
       {...listeners}
       onClick={(e) => handleDoubleTap(e)}
@@ -307,11 +307,11 @@ function TodoItem({ item, onToggle, onOpenMenu, tm }: any) {
         </div>
 
         {item.subs && item.subs.length > 0 && (
-          <div className="mt-3 pl-2.5 space-y-2 border-l-2 border-gray-100">
+          <div className="mt-2.5 space-y-2.5">
             {item.subs.map((sub:any) => {
               const subFavicon = sub.link ? getFaviconUrl(sub.link) : null;
               return (
-                <div key={sub.id} className="flex items-center gap-3 py-1 cursor-pointer" onClick={(e) => handleDoubleTap(e, sub.id)}>
+                <div key={sub.id} className="flex items-center gap-3 py-0.5 cursor-pointer" onClick={(e) => handleDoubleTap(e, sub.id)}>
                   <div 
                     onClick={(e) => { e.stopPropagation(); onToggle(item.id, sub.id); }} 
                     className={`min-w-[20px] h-[20px] rounded-md border flex items-center justify-center transition-colors cursor-pointer shrink-0 ${sub.done ? `${safeTm.primary} border-transparent` : 'border-gray-300 bg-white'}`}
@@ -342,6 +342,7 @@ function TodoItem({ item, onToggle, onOpenMenu, tm }: any) {
   );
 }
 
+// 項目 2b 修正：將改名與連結濃縮成一個【編輯】按鈕
 function ActionMenu({ isOpen, onClose, onAction, itemType }: any) {
   if (!isOpen) return null;
   const isSub = itemType === 'sub';
@@ -351,12 +352,14 @@ function ActionMenu({ isOpen, onClose, onAction, itemType }: any) {
         <div className="w-12 h-1.5 bg-gray-200 rounded-full mx-auto mb-6"></div>
         <h3 className="text-center font-bold text-gray-800 mb-6 text-lg">編輯項目</h3>
         <div className="grid grid-cols-4 gap-4">
-          <button onClick={() => onAction('edit')} className="flex flex-col items-center gap-2 text-gray-600 active:scale-95"><div className="p-4 bg-gray-100 rounded-2xl"><Edit3 size={24}/></div><span className="text-xs">改名</span></button>
-          <button onClick={() => onAction('link')} className="flex flex-col items-center gap-2 text-gray-600 active:scale-95"><div className="p-4 bg-gray-100 rounded-2xl"><LinkIcon size={24}/></div><span className="text-xs">連結</span></button>
-          {!isSub && <button onClick={() => onAction('indent')} className="flex flex-col items-center gap-2 text-gray-600 active:scale-95"><div className="p-4 bg-gray-100 rounded-2xl"><ArrowRight size={24}/></div><span className="text-xs">縮排</span></button>}
-          {isSub && <button onClick={() => onAction('outdent')} className="flex flex-col items-center gap-2 text-gray-600 active:scale-95"><div className="p-4 bg-gray-100 rounded-2xl"><ArrowLeft size={24}/></div><span className="text-xs">升級</span></button>}
-          <button onClick={() => onAction('move')} className="flex flex-col items-center gap-2 text-gray-600 active:scale-95"><div className="p-4 bg-gray-100 rounded-2xl"><FolderInput size={24}/></div><span className="text-xs">移動</span></button>
-          <button onClick={() => onAction('delete')} className="flex flex-col items-center gap-2 text-red-500 active:scale-95"><div className="p-4 bg-red-50 rounded-2xl"><Trash2 size={24}/></div><span className="text-xs">刪除</span></button>
+          <button onClick={() => onAction('edit_combined')} className="flex flex-col items-center gap-2 text-gray-600 active:scale-95">
+            <div className="p-4 bg-gray-100 rounded-2xl"><Edit3 size={24}/></div>
+            <span className="text-xs font-bold">編輯</span>
+          </button>
+          {!isSub && <button onClick={() => onAction('indent')} className="flex flex-col items-center gap-2 text-gray-600 active:scale-95"><div className="p-4 bg-gray-100 rounded-2xl"><ArrowRight size={24}/></div><span className="text-xs font-bold">縮排</span></button>}
+          {isSub && <button onClick={() => onAction('outdent')} className="flex flex-col items-center gap-2 text-gray-600 active:scale-95"><div className="p-4 bg-gray-100 rounded-2xl"><ArrowLeft size={24}/></div><span className="text-xs font-bold">升級</span></button>}
+          <button onClick={() => onAction('move')} className="flex flex-col items-center gap-2 text-gray-600 active:scale-95"><div className="p-4 bg-gray-100 rounded-2xl"><FolderInput size={24}/></div><span className="text-xs font-bold">移動</span></button>
+          <button onClick={() => onAction('delete')} className="flex flex-col items-center gap-2 text-red-500 active:scale-95"><div className="p-4 bg-red-50 rounded-2xl"><Trash2 size={24}/></div><span className="text-xs font-bold">刪除</span></button>
         </div>
         <button onClick={onClose} className="w-full mt-8 py-3 rounded-xl bg-gray-100 font-bold text-gray-600">取消</button>
       </div>
@@ -424,7 +427,6 @@ const AboutModal: React.FC<AboutModalProps> = ({ isOpen, onClose, onOpenSettings
           </a>
         </div>
 
-        {/* 1. 支援 whitespace-pre-line 多行展示 */}
         <div className="text-xs space-y-1 bg-amber-50/60 p-3.5 rounded-2xl border border-amber-100/80">
           <div className="font-bold text-amber-800 flex items-center justify-between">
             <span>📌 更新說明</span>
@@ -435,7 +437,6 @@ const AboutModal: React.FC<AboutModalProps> = ({ isOpen, onClose, onOpenSettings
           </p>
         </div>
 
-        {/* 1. 支援 whitespace-pre-line 多行展示 */}
         <div className="text-[11px] text-gray-400 bg-gray-50 p-3 rounded-2xl border border-gray-100 leading-relaxed whitespace-pre-line">
           <span className="font-bold text-gray-500 block mb-0.5">⚠️ 注意事項</span>
           {info.disclaimer || '此 App 非官方製作，內容僅供參考。請以官方資訊為準，勿作商業用途。'}
@@ -452,16 +453,17 @@ const AboutModal: React.FC<AboutModalProps> = ({ isOpen, onClose, onOpenSettings
   );
 };
 
+// 項目 3c 修正：標題不放英文，改為「樂園攻略」/「海洋攻略」，副標題「園區文章全輯」
 interface ParkGuideModalProps {
   isOpen: boolean;
   onClose: () => void;
-  title: string;
   parkType: 'land' | 'sea';
   guides: any[];
 }
-const ParkGuideModal: React.FC<ParkGuideModalProps> = ({ isOpen, onClose, title, parkType, guides }) => {
+const ParkGuideModal: React.FC<ParkGuideModalProps> = ({ isOpen, onClose, parkType, guides }) => {
   if (!isOpen) return null;
   const isLand = parkType === 'land';
+  const displayTitle = isLand ? '樂園攻略' : '海洋攻略';
 
   const groupedGuides: any = {};
   guides.forEach(g => {
@@ -479,8 +481,8 @@ const ParkGuideModal: React.FC<ParkGuideModalProps> = ({ isOpen, onClose, title,
               {isLand ? <Castle size={20}/> : <Anchor size={20}/>}
             </div>
             <div>
-              <h3 className="font-bold text-lg text-gray-800">{title}</h3>
-              <p className="text-xs text-gray-400">迪士尼{isLand ? '樂園' : '海洋'}文章全輯</p>
+              <h3 className="font-bold text-lg text-gray-800">{displayTitle}</h3>
+              <p className="text-xs text-gray-400">園區文章全輯</p>
             </div>
           </div>
           <button onClick={onClose} className="p-2 bg-gray-100 hover:bg-gray-200 rounded-full text-gray-500"><X size={18}/></button>
@@ -525,15 +527,27 @@ const ParkGuideModal: React.FC<ParkGuideModalProps> = ({ isOpen, onClose, title,
   );
 };
 
+// 項目 4 修正：連續新增行程（移除點擊 item 後自動關閉 modal 的邏輯）
 interface AddItemModalProps { isOpen: boolean; onClose: () => void; onAdd: (facility: Facility) => void; park: 'land' | 'sea'; facilitiesDb: Facility[]; }
 const AddItemModal: React.FC<AddItemModalProps> = ({ isOpen, onClose, onAdd, park, facilitiesDb }) => {
   const [selectedCategory, setSelectedCategory] = useState<FacilityType>('ride');
   const [searchTerm, setSearchTerm] = useState("");
+  const [addedIds, setAddedIds] = useState<string[]>([]);
+
   if (!isOpen) return null;
   const filteredFacilities = facilitiesDb.filter(f =>
     f.park === park && f.category === selectedCategory &&
     (f.name.includes(searchTerm) || f.enName.toLowerCase().includes(searchTerm.toLowerCase()))
   );
+
+  const handleFacilityClick = (facility: Facility) => {
+    onAdd(facility);
+    setAddedIds(prev => [...prev, facility.id]);
+    setTimeout(() => {
+      setAddedIds(prev => prev.filter(id => id !== facility.id));
+    }, 1200);
+  };
+
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-in fade-in">
       <div className="bg-white w-full max-w-md h-[75vh] rounded-2xl sm:rounded-3xl shadow-2xl overflow-hidden flex flex-col">
@@ -562,15 +576,29 @@ const AddItemModal: React.FC<AddItemModalProps> = ({ isOpen, onClose, onAdd, par
           {filteredFacilities.length === 0 ? (
             <div className="text-center py-10 text-gray-400 text-sm">沒有找到相關項目</div>
           ) : (
-            filteredFacilities.map(facility => (
-              <button key={facility.id} onClick={() => { onAdd(facility); onClose(); }} disabled={facility.status === '維修中'} className={`w-full text-left p-3 rounded-xl border flex items-center justify-between group transition-all ${facility.status === '維修中' ? 'bg-gray-100 border-gray-200 opacity-60 cursor-not-allowed' : 'bg-white border-gray-100 hover:border-pink-300 hover:shadow-sm'}`}>
-                <div>
-                  <div className="font-bold text-gray-800 text-sm">{facility.name}</div>
-                  <div className="text-[10px] text-gray-400">{facility.enName}</div>
-                </div>
-                {facility.status !== '營運中' ? <span className="text-[10px] bg-red-100 text-red-500 px-2 py-1 rounded-md font-bold">{facility.status}</span> : <Plus size={18} className="text-gray-300 group-hover:text-pink-500" />}
-              </button>
-            ))
+            filteredFacilities.map(facility => {
+              const isJustAdded = addedIds.includes(facility.id);
+              return (
+                <button 
+                  key={facility.id} 
+                  onClick={() => handleFacilityClick(facility)} 
+                  disabled={facility.status === '維修中'} 
+                  className={`w-full text-left p-3 rounded-xl border flex items-center justify-between group transition-all active:scale-[0.98] ${facility.status === '維修中' ? 'bg-gray-100 border-gray-200 opacity-60 cursor-not-allowed' : isJustAdded ? 'bg-pink-50 border-pink-300 ring-2 ring-pink-100' : 'bg-white border-gray-100 hover:border-pink-300 hover:shadow-sm'}`}
+                >
+                  <div>
+                    <div className="font-bold text-gray-800 text-sm">{facility.name}</div>
+                    <div className="text-[10px] text-gray-400">{facility.enName}</div>
+                  </div>
+                  {facility.status !== '營運中' ? (
+                    <span className="text-[10px] bg-red-100 text-red-500 px-2 py-1 rounded-md font-bold">{facility.status}</span>
+                  ) : isJustAdded ? (
+                    <span className="text-xs text-pink-600 font-bold px-2 py-1 bg-pink-100 rounded-lg">已新增 ✓</span>
+                  ) : (
+                    <Plus size={18} className="text-gray-300 group-hover:text-pink-500" />
+                  )}
+                </button>
+              );
+            })
           )}
         </div>
       </div>
@@ -690,6 +718,9 @@ export default function App() {
   const [guideModal, setGuideModal] = useState<{ isOpen: boolean; park: 'land' | 'sea' }>({ isOpen: false, park: 'land' });
   const lastScrollY = useRef(0);
 
+  // 用於「我的清單」雙擊判斷
+  const myListTapRef = useRef<{ [key: string]: number }>({});
+
   useEffect(() => {
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
@@ -793,7 +824,6 @@ export default function App() {
           if (fetchedFacs.length > 0) setFacilitiesDb(fetchedFacs);
         }
 
-        // Fetch About Data (全新 Smart CSV 解析 logic，完全相容換行)
         if (FETCH_URLS.about) {
           const aboutRes = await fetch(FETCH_URLS.about);
           if (aboutRes.ok) {
@@ -890,6 +920,7 @@ export default function App() {
     setMenuOpen(true);
   };
 
+  // 項目 2b：編輯與連結合體為單一「編輯」功能
   const executeAction = (action: string) => {
     if (!selectedItem) return;
     const { groupId, itemId, subId } = selectedItem;
@@ -904,12 +935,15 @@ export default function App() {
         if(sub) item.subs = item.subs.filter((s:any) => s.id !== subId);
         else group.items = group.items.filter((i:any) => i.id !== itemId);
       }
-    } else if (action === 'edit') {
-      const newTitle = prompt('修改名稱', target.title);
-      if(newTitle) target.title = newTitle;
-    } else if (action === 'link') {
-      const newLink = prompt('修改連結(輸入空值可移除)', target.link || "");
-      target.link = newLink;
+    } else if (action === 'edit_combined') {
+      const newTitle = prompt('修改名稱：', target.title);
+      if (newTitle !== null && newTitle.trim()) {
+        target.title = newTitle.trim();
+        const newLink = prompt('修改連結 (直接按確定不修改，清空則移除)：', target.link || "");
+        if (newLink !== null) {
+          target.link = newLink.trim();
+        }
+      }
     } else if (action === 'indent' && !sub) {
       const idx = group.items.findIndex((i:any) => i.id === itemId);
       if(idx > 0) {
@@ -990,6 +1024,7 @@ export default function App() {
     }
   };
 
+  // 項目 5a & 5b：「我的清單」編輯、刪除、雙擊編輯、連結位置
   const toggleMyList = (itemId: string) => {
     const newData = JSON.parse(JSON.stringify(data));
     if (!newData.myList) newData.myList = [];
@@ -1005,10 +1040,30 @@ export default function App() {
     setData(newData);
   };
 
+  const handleMyListDoubleTap = (item: any) => {
+    const now = Date.now();
+    const lastTap = myListTapRef.current[item.id] || 0;
+    if (now - lastTap < 300) {
+      const newTitle = prompt('編輯項目名稱：', item.title);
+      if (newTitle !== null && newTitle.trim()) {
+        const newLink = prompt('編輯連結 (留空代表不設連結)：', item.link || '');
+        const newData = JSON.parse(JSON.stringify(data));
+        const target = newData.myList.find((i: any) => i.id === item.id);
+        if (target) {
+          target.title = newTitle.trim();
+          target.link = newLink !== null ? newLink.trim() : '';
+          setData(newData);
+        }
+      }
+    }
+    myListTapRef.current[item.id] = now;
+  };
+
   const handleAddMyList = () => {
-    const title = prompt('請輸入項目名稱');
-    if (!title) return;
-    const newItem = { id: Date.now().toString(), title, done: false };
+    const title = prompt('請輸入項目名稱：');
+    if (!title || !title.trim()) return;
+    const link = prompt('請輸入連結 (選填，無連結直接按確定即可)：');
+    const newItem = { id: Date.now().toString(), title: title.trim(), link: link ? link.trim() : '', done: false };
     const newData = JSON.parse(JSON.stringify(data));
     if (!newData.myList) newData.myList = [];
     newData.myList.push(newItem);
@@ -1065,8 +1120,11 @@ export default function App() {
     setShowOnboarding(false);
   };
 
+  // 項目 2a 修正：優化觸控與滑動感應，增加 TouchSensor 延遲避免與網頁捲動發生衝突
   const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { delay: 200, tolerance: 8 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 250, tolerance: 5 } }),
+    useSensor(MouseSensor, { activationConstraint: { distance: 10 } }),
+    useSensor(PointerSensor, { activationConstraint: { delay: 250, tolerance: 5 } }),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
   );
 
@@ -1180,6 +1238,7 @@ export default function App() {
 
           <main className="p-5 max-w-md mx-auto -mt-16 relative z-10">
             
+            {/* 行程規劃 Tab */}
             {activeTab === 'plan' && (
               <div className="animate-in slide-in-from-bottom-4 duration-300">
                 <div className="bg-white/80 backdrop-blur-sm p-4 rounded-[2rem] border border-white shadow-sm min-h-[400px]">
@@ -1228,6 +1287,7 @@ export default function App() {
               </div>
             )}
 
+            {/* 入園指南 Tab */}
             {activeTab === 'todo' && (
               <div className="space-y-6">
                 {data.todo.map((group:any) => {
@@ -1276,29 +1336,29 @@ export default function App() {
               </div>
             )}
 
+            {/* 攻略情報 Tab */}
             {activeTab === 'news' && (
               <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                {/* 項目 3a & 3b 修正：按鈕移除了副標題 */}
                 <div className="grid grid-cols-2 gap-4">
                   <button 
                     onClick={() => setGuideModal({ isOpen: true, park: 'land' })}
-                    className="bg-white p-5 rounded-[2rem] border border-gray-100 shadow-sm flex flex-col items-center text-center group hover:shadow-md transition-all active:scale-95"
+                    className="bg-white p-5 rounded-[2rem] border border-gray-100 shadow-sm flex flex-col items-center justify-center text-center group hover:shadow-md transition-all active:scale-95"
                   >
-                    <div className="w-12 h-12 rounded-2xl bg-pink-100 text-pink-500 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                    <div className="w-12 h-12 rounded-2xl bg-pink-100 text-pink-500 flex items-center justify-center mb-2 group-hover:scale-110 transition-transform">
                       <Castle size={24}/>
                     </div>
                     <span className="font-bold text-gray-800 text-base block">樂園攻略</span>
-                    <span className="text-xs text-gray-400 mt-0.5">Land 專屬指南</span>
                   </button>
 
                   <button 
                     onClick={() => setGuideModal({ isOpen: true, park: 'sea' })}
-                    className="bg-white p-5 rounded-[2rem] border border-gray-100 shadow-sm flex flex-col items-center text-center group hover:shadow-md transition-all active:scale-95"
+                    className="bg-white p-5 rounded-[2rem] border border-gray-100 shadow-sm flex flex-col items-center justify-center text-center group hover:shadow-md transition-all active:scale-95"
                   >
-                    <div className="w-12 h-12 rounded-2xl bg-blue-100 text-blue-500 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                    <div className="w-12 h-12 rounded-2xl bg-blue-100 text-blue-500 flex items-center justify-center mb-2 group-hover:scale-110 transition-transform">
                       <Anchor size={24}/>
                     </div>
                     <span className="font-bold text-gray-800 text-base block">海洋攻略</span>
-                    <span className="text-xs text-gray-400 mt-0.5">Sea 專屬指南</span>
                   </button>
                 </div>
 
@@ -1373,24 +1433,59 @@ export default function App() {
               </div>
             )}
 
+            {/* 我的清單 Tab */}
             {activeTab === 'mylist' && (
               <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
                 <div className="space-y-4">
                   <div className="bg-white p-6 rounded-[2rem] shadow-sm border border-gray-100 text-center mb-4">
                     <ShoppingBag size={32} className={`mx-auto mb-2 ${tm.text} opacity-20`} />
                     <h3 className="text-gray-800 font-bold">我的清單</h3>
-                    <p className="text-gray-400 text-xs mt-1">必買商品、必吃美食都記在這裡!</p>
+                    <p className="text-gray-400 text-xs mt-1">必買商品、必吃美食都記在這裡！(雙擊項目可編輯)</p>
                   </div>
                   <div className="space-y-3">
-                    {data.myList?.map((item:any) => (
-                      <div key={item.id} className={`bg-white p-4 rounded-2xl border flex items-center gap-3 transition-all ${item.done ? 'opacity-50 border-gray-100' : 'border-gray-100 shadow-sm'}`}>
-                        <button onClick={() => toggleMyList(item.id)} className={`min-w-[24px] h-6 rounded-full border-2 flex items-center justify-center transition-colors ${item.done ? tm.primary + ' border-transparent' : 'border-gray-300'}`}>
-                          {item.done && <CheckCircle2 size={16} className="text-white" />}
-                        </button>
-                        <span className={`flex-1 font-medium ${item.done ? 'line-through text-gray-400' : 'text-gray-700'}`}>{item.title}</span>
-                        <button onClick={() => deleteMyList(item.id)} className="text-gray-300 hover:text-red-400"><Trash2 size={16}/></button>
-                      </div>
-                    ))}
+                    {data.myList?.map((item:any) => {
+                      const itemFavicon = item.link ? getFaviconUrl(item.link) : null;
+                      return (
+                        <div 
+                          key={item.id} 
+                          onClick={() => handleMyListDoubleTap(item)}
+                          className={`bg-white p-4 rounded-2xl border flex items-center gap-3 transition-all select-none cursor-pointer ${item.done ? 'opacity-50 border-gray-100' : 'border-gray-100 shadow-sm'}`}
+                        >
+                          <button 
+                            onClick={(e) => { e.stopPropagation(); toggleMyList(item.id); }} 
+                            className={`min-w-[24px] h-6 rounded-full border-2 flex items-center justify-center transition-colors shrink-0 ${item.done ? tm.primary + ' border-transparent' : 'border-gray-300'}`}
+                          >
+                            {item.done && <CheckCircle2 size={16} className="text-white" />}
+                          </button>
+                          
+                          <span className={`flex-1 font-medium text-[15px] ${item.done ? 'line-through text-gray-400' : 'text-gray-700'}`}>
+                            {item.title}
+                          </span>
+                          
+                          {/* 項目 5a 修正：刪除按鈕，其右側放連結按鈕 */}
+                          <div className="flex items-center gap-2 shrink-0">
+                            <button 
+                              onClick={(e) => { e.stopPropagation(); deleteMyList(item.id); }} 
+                              className="text-gray-300 hover:text-red-400 p-1 rounded-lg transition-colors"
+                            >
+                              <Trash2 size={16}/>
+                            </button>
+
+                            {item.link ? (
+                              <a href={item.link} target="_blank" rel="noreferrer" onClick={e => e.stopPropagation()} className="p-1">
+                                {itemFavicon ? (
+                                  <img src={itemFavicon} alt="icon" className="w-4.5 h-4.5 rounded object-contain opacity-80 hover:opacity-100" />
+                                ) : (
+                                  <ExternalLink size={16} className="text-pink-400 hover:text-pink-600"/>
+                                )}
+                              </a>
+                            ) : (
+                              <span className="w-4.5"></span>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
                   <button onClick={handleAddMyList} className={`w-full mt-4 px-6 py-4 rounded-xl ${tm.primary} text-white font-bold shadow-lg hover:opacity-90 active:scale-95 transition-all flex items-center justify-center gap-2`}><Plus size={20}/> 新增項目</button>
                 </div>
@@ -1411,7 +1506,6 @@ export default function App() {
           <ParkGuideModal 
             isOpen={guideModal.isOpen} 
             onClose={() => setGuideModal({ isOpen: false, park: 'land' })}
-            title={guideModal.park === 'land' ? '樂園攻略 Land' : '海洋攻略 Sea'}
             parkType={guideModal.park}
             guides={guideModal.park === 'land' ? (data.news?.landGuides || []) : (data.news?.seaGuides || [])}
           />
@@ -1419,13 +1513,14 @@ export default function App() {
           <AddItemModal isOpen={isAddModalOpen} onClose={() => setIsAddModalOpen(false)} onAdd={handleAddFacility} park={parkMode} facilitiesDb={facilitiesDb} />
           <MapModal isOpen={isMapOpen} onClose={() => setIsMapOpen(false)} items={data.plan[parkMode]} park={parkMode} facilitiesDb={facilitiesDb} />
           
+          {/* 項目 1 修正：最下方導覽列名稱調成經典且清晰的名稱 */}
           <nav className={`fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 w-full z-40 shadow-lg transition-transform duration-300 ${showNav ? 'translate-y-0' : 'translate-y-full'}`}>
             <div className="grid grid-cols-4 items-end pb-10 pt-3">
               <button onClick={() => setActiveTab('todo')} className="flex flex-col items-center gap-1 transition-all active:scale-95 group">
                 <div className={`transition-all duration-300 ${activeTab === 'todo' ? '-translate-y-1' : ''}`}>
                   <CheckCircle2 size={22} className={activeTab === 'todo' ? tm.text : 'text-gray-300 group-hover:text-gray-400'} strokeWidth={activeTab === 'todo' ? 2.5 : 2} />
                 </div>
-                <span className={`text-xs font-bold transition-all duration-300 ${activeTab === 'todo' ? `${tm.text} -translate-y-1` : 'text-gray-400'}`}>準備</span>
+                <span className={`text-xs font-bold transition-all duration-300 ${activeTab === 'todo' ? `${tm.text} -translate-y-1` : 'text-gray-400'}`}>入園指南</span>
               </button>
               <button onClick={() => setActiveTab('news')} className="flex flex-col items-center gap-1 transition-all active:scale-95 group">
                 <div className={`transition-all duration-300 ${activeTab === 'news' ? '-translate-y-1' : ''}`}>
@@ -1437,13 +1532,13 @@ export default function App() {
                 <div className={`transition-all duration-300 ${activeTab === 'plan' ? '-translate-y-1' : ''}`}>
                   <GalleryVertical size={22} className={activeTab === 'plan' ? tm.text : 'text-gray-300 group-hover:text-gray-400'} strokeWidth={activeTab === 'plan' ? 2.5 : 2} />
                 </div>
-                <span className={`text-xs font-bold transition-all duration-300 ${activeTab === 'plan' ? `${tm.text} -translate-y-1` : 'text-gray-400'}`}>行程</span>
+                <span className={`text-xs font-bold transition-all duration-300 ${activeTab === 'plan' ? `${tm.text} -translate-y-1` : 'text-gray-400'}`}>行程規劃</span>
               </button>
               <button onClick={() => setActiveTab('mylist')} className="flex flex-col items-center gap-1 transition-all active:scale-95 group">
                 <div className={`transition-all duration-300 ${activeTab === 'mylist' ? '-translate-y-1' : ''}`}>
                   <List size={22} className={activeTab === 'mylist' ? tm.text : 'text-gray-300 group-hover:text-gray-400'} strokeWidth={activeTab === 'mylist' ? 2.5 : 2} />
                 </div>
-                <span className={`text-xs font-bold transition-all duration-300 ${activeTab === 'mylist' ? `${tm.text} -translate-y-1` : 'text-gray-400'}`}>清單</span>
+                <span className={`text-xs font-bold transition-all duration-300 ${activeTab === 'mylist' ? `${tm.text} -translate-y-1` : 'text-gray-400'}`}>我的清單</span>
               </button>
             </div>
           </nav>
