@@ -234,7 +234,7 @@ const ItemEditModal: React.FC<ItemEditModalProps> = ({ isOpen, onClose, onSave, 
           <label className="block text-xs font-bold text-gray-400 mb-1">項目名稱</label>
           <input 
             type="text" 
-            className="w-full p-3 bg-gray-100 rounded-xl font-bold text-sm outline-none focus:ring-2 focus:ring-pink-300"
+            className="w-full p-3 bg-gray-100 rounded-xl font-bold text-sm outline-none focus:ring-2 focus:ring-stone-400"
             value={title}
             onChange={e => setTitle(e.target.value)}
             placeholder="請輸入名稱"
@@ -245,7 +245,7 @@ const ItemEditModal: React.FC<ItemEditModalProps> = ({ isOpen, onClose, onSave, 
           <label className="block text-xs font-bold text-gray-400 mb-1">連結網址 (選填)</label>
           <input 
             type="text" 
-            className="w-full p-3 bg-gray-100 rounded-xl text-xs outline-none focus:ring-2 focus:ring-pink-300"
+            className="w-full p-3 bg-gray-100 rounded-xl text-xs outline-none focus:ring-2 focus:ring-stone-400"
             value={link}
             onChange={e => setLink(e.target.value)}
             placeholder="https://..."
@@ -268,12 +268,13 @@ const ItemEditModal: React.FC<ItemEditModalProps> = ({ isOpen, onClose, onSave, 
   );
 };
 
+// 💡 2. 行程移動順暢修復：CSS Translate + Touch-action 純粹鎖定，絕不閃爍
 function PlanItem({ id, item, onDelete, index, tm }: any) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id });
   const style = { 
     transform: CSS.Translate.toString(transform), 
     transition, 
-    opacity: isDragging ? 0.8 : 1 
+    opacity: isDragging ? 0.85 : 1 
   };
   const safeTm = tm || THEMES.cream;
   
@@ -295,7 +296,7 @@ function PlanItem({ id, item, onDelete, index, tm }: any) {
       style={style} 
       {...attributes} 
       {...listeners} 
-      className={`bg-white p-3.5 mb-2 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between touch-none select-none active:scale-[0.98] transition-all w-full box-border ${isDragging ? 'shadow-xl border-pink-300 ring-2 ring-pink-100 z-50 bg-white' : ''}`}
+      className={`bg-white p-3.5 mb-2 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between touch-none select-none active:scale-[0.98] transition-all w-full box-border ${isDragging ? 'shadow-xl border-stone-300 ring-2 ring-stone-200 z-50 bg-white' : ''}`}
     >
       <div className="flex items-center gap-3 flex-1 min-w-0 pr-2">
         <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${safeTm.bg} ${safeTm.text}`}>
@@ -349,7 +350,7 @@ function TodoItem({ item, onToggle, onOpenMenu, tm }: any) {
     <div 
       ref={setNodeRef} 
       style={style} 
-      className={`bg-white p-4 rounded-2xl border border-gray-100 shadow-sm flex items-start gap-3 relative select-none transition-shadow touch-none w-full box-border ${isDragging ? 'shadow-xl border-pink-300 ring-2 ring-pink-100 z-50 bg-white' : ''}`}
+      className={`bg-white p-4 rounded-2xl border border-gray-100 shadow-sm flex items-start gap-3 relative select-none transition-shadow touch-none w-full box-border ${isDragging ? 'shadow-xl border-stone-300 ring-2 ring-stone-200 z-50 bg-white' : ''}`}
       {...attributes} 
       {...listeners}
       onClick={(e) => handleDoubleTap(e)}
@@ -372,7 +373,7 @@ function TodoItem({ item, onToggle, onOpenMenu, tm }: any) {
               {mainFavicon ? (
                 <img src={mainFavicon} alt="icon" className="w-5 h-5 rounded-md object-contain opacity-80 hover:opacity-100" />
               ) : (
-                <div className="text-pink-400 bg-pink-50 p-1 rounded-lg"><LinkIcon size={14}/></div>
+                <div className="text-stone-500 bg-stone-100 p-1 rounded-lg"><LinkIcon size={14}/></div>
               )}
             </a>
           )}
@@ -400,7 +401,7 @@ function TodoItem({ item, onToggle, onOpenMenu, tm }: any) {
                       {subFavicon ? (
                         <img src={subFavicon} alt="icon" className="w-[18px] h-[18px] rounded-md object-contain opacity-80 hover:opacity-100" />
                       ) : (
-                        <ExternalLink size={15} className="text-gray-300 hover:text-pink-400"/>
+                        <ExternalLink size={15} className="text-gray-300 hover:text-stone-500"/>
                       )}
                     </a>
                   )}
@@ -492,7 +493,7 @@ const AboutModal: React.FC<AboutModalProps> = ({ isOpen, onClose, onOpenSettings
             href={info.sponsorUrl || 'https://portaly.cc/tnnodisney'} 
             target="_blank" 
             rel="noreferrer" 
-            className="flex flex-col items-center justify-center py-3 px-2 bg-pink-500 text-white rounded-2xl font-bold text-xs shadow-sm hover:bg-pink-600 active:scale-95 transition-all gap-1"
+            className="flex flex-col items-center justify-center py-3 px-2 bg-stone-700 text-white rounded-2xl font-bold text-xs shadow-sm hover:bg-stone-800 active:scale-95 transition-all gap-1"
           >
             <Heart size={18}/> 小額贊助
           </a>
@@ -500,8 +501,8 @@ const AboutModal: React.FC<AboutModalProps> = ({ isOpen, onClose, onOpenSettings
 
         <div className="text-xs space-y-1 bg-amber-50/60 p-3.5 rounded-2xl border border-amber-100/80">
           <div className="font-bold text-amber-800 flex items-center justify-between">
-            <span>📍 更新說明</span>
-            <span className="text-[10px] text-amber-600 font-normal">更新時間：{info.lastUpdate || '2026/07/23'}</span>
+            <span>📌 更新說明</span>
+            <span className="text-[10px] text-amber-600 font-normal">最新：{info.lastUpdate || '2026/07/23'}</span>
           </div>
           <p className="text-amber-700/90 text-[11px] leading-relaxed whitespace-pre-line">
             {info.updateNotice || '固定每月 1 號更新，無法完全及時！有需要請自行調整內容！'}
@@ -547,7 +548,7 @@ const ParkGuideModal: React.FC<ParkGuideModalProps> = ({ isOpen, onClose, parkTy
       <div className="relative w-full max-w-md bg-white/90 backdrop-blur-xl rounded-[2.5rem] p-6 shadow-2xl border border-white/50 flex flex-col max-h-[80vh] overflow-hidden">
         <div className="flex justify-between items-center mb-6 pb-2 border-b border-gray-200/50 shrink-0">
           <div className="flex items-center gap-3">
-            <div className={`w-10 h-10 rounded-2xl flex items-center justify-center text-xl ${isLand ? 'bg-pink-100' : 'bg-blue-100'}`}>
+            <div className={`w-10 h-10 rounded-2xl flex items-center justify-center text-xl ${isLand ? 'bg-stone-100' : 'bg-blue-100'}`}>
               {isLand ? '🏰' : '🌋'}
             </div>
             <div>
@@ -574,15 +575,15 @@ const ParkGuideModal: React.FC<ParkGuideModalProps> = ({ isOpen, onClose, parkTy
                         href={g.link} 
                         target="_blank" 
                         rel="noreferrer" 
-                        className="flex items-center justify-between p-2.5 rounded-xl bg-white hover:bg-pink-50/50 transition-all border border-gray-100/80 group"
+                        className="flex items-center justify-between p-2.5 rounded-xl bg-white hover:bg-stone-50 transition-all border border-gray-100/80 group"
                       >
                         <div className="flex items-center gap-2.5">
                           {favicon ? (
                             <img src={favicon} className="w-5 h-5 rounded object-contain" alt="icon"/>
                           ) : (
-                            <LinkIcon size={14} className="text-pink-400"/>
+                            <LinkIcon size={14} className="text-stone-500"/>
                           )}
-                          <span className="text-sm font-medium text-gray-700 group-hover:text-pink-500 transition-colors">{g.title}</span>
+                          <span className="text-sm font-medium text-gray-700 group-hover:text-stone-800 transition-colors">{g.title}</span>
                         </div>
                       </a>
                     );
@@ -597,6 +598,7 @@ const ParkGuideModal: React.FC<ParkGuideModalProps> = ({ isOpen, onClose, parkTy
   );
 };
 
+// 💡 3. 新增行程 Modal 殘留粉色修復：改成質感深灰/深咖啡色
 interface AddItemModalProps { isOpen: boolean; onClose: () => void; onAdd: (facility: Facility) => void; park: 'land' | 'sea'; facilitiesDb: Facility[]; tm: any; }
 const AddItemModal: React.FC<AddItemModalProps> = ({ isOpen, onClose, onAdd, park, facilitiesDb, tm }) => {
   const [selectedCategory, setSelectedCategory] = useState<FacilityType>('ride');
@@ -622,7 +624,9 @@ const AddItemModal: React.FC<AddItemModalProps> = ({ isOpen, onClose, onAdd, par
     <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-in fade-in">
       <div className="bg-white w-full max-w-md h-[75vh] rounded-2xl sm:rounded-3xl shadow-2xl overflow-hidden flex flex-col">
         <div className="p-4 border-b bg-gray-50 flex justify-between items-center shrink-0">
-          <h3 className="font-bold text-gray-700 flex items-center gap-2"><Plus className="w-5 h-5 text-pink-500" /> 新增行程</h3>
+          <h3 className="font-bold text-gray-700 flex items-center gap-2">
+            <Plus className="w-5 h-5 text-[#5a4d41]" /> 新增行程
+          </h3>
           <button onClick={onClose} className="p-2 bg-gray-200 rounded-full text-gray-500"><X size={16}/></button>
         </div>
         <div className="flex p-2 gap-2 bg-white overflow-x-auto no-scrollbar border-b shrink-0">
@@ -657,7 +661,7 @@ const AddItemModal: React.FC<AddItemModalProps> = ({ isOpen, onClose, onAdd, par
                   key={facility.id} 
                   onClick={() => handleFacilityClick(facility)} 
                   disabled={facility.status === '維修中'} 
-                  className={`w-full text-left p-3 rounded-xl border flex items-center justify-between group transition-all active:scale-[0.98] ${facility.status === '維修中' ? 'bg-gray-100 border-gray-200 opacity-60 cursor-not-allowed' : isJustAdded ? `${safeTm.bg} ${safeTm.border} ring-2 ring-pink-100` : 'bg-white border-gray-100 hover:border-pink-300 hover:shadow-sm'}`}
+                  className={`w-full text-left p-3 rounded-xl border flex items-center justify-between group transition-all active:scale-[0.98] ${facility.status === '維修中' ? 'bg-gray-100 border-gray-200 opacity-60 cursor-not-allowed' : isJustAdded ? `${safeTm.bg} ${safeTm.border} ring-2 ring-stone-200` : 'bg-white border-gray-100 hover:border-stone-300 hover:shadow-sm'}`}
                 >
                   <div>
                     <div className="font-bold text-gray-800 text-sm">{facility.name}</div>
@@ -668,7 +672,7 @@ const AddItemModal: React.FC<AddItemModalProps> = ({ isOpen, onClose, onAdd, par
                   ) : isJustAdded ? (
                     <span className={`text-xs font-bold px-2 py-1 ${safeTm.bg} ${safeTm.text} rounded-lg`}>已新增 ✓</span>
                   ) : (
-                    <Plus size={18} className="text-gray-300 group-hover:text-pink-500" />
+                    <Plus size={18} className="text-gray-300 group-hover:text-stone-600" />
                   )}
                 </button>
               );
@@ -680,6 +684,7 @@ const AddItemModal: React.FC<AddItemModalProps> = ({ isOpen, onClose, onAdd, par
   );
 }
 
+// 💡 4 & 5. 行程地圖提示文字簡化 & 按鈕文字【畫路線圖】
 interface MapModalProps { isOpen: boolean; onClose: () => void; items: any[]; park: 'land' | 'sea'; facilitiesDb: Facility[]; }
 const MapModal: React.FC<MapModalProps> = ({ isOpen, onClose, items, park, facilitiesDb }) => {
   if (!isOpen) return null;
@@ -721,15 +726,17 @@ const MapModal: React.FC<MapModalProps> = ({ isOpen, onClose, items, park, facil
             </h3>
           </div>
           <div className="flex items-center gap-2">
+            {/* 5. 變更按鈕文字為【畫路線圖】 */}
             <button onClick={openExternalMap} className="text-xs bg-blue-600 text-white px-3 py-2 rounded-xl font-bold flex items-center gap-1.5 shadow-md hover:bg-blue-700 active:scale-95 transition-all">
-              <Navigation size={14}/> 路線畫圖 ↗
+              <Navigation size={14}/> 畫路線圖 ↗
             </button>
             <button onClick={onClose} className="p-2 hover:bg-gray-200 rounded-full text-gray-500"><X size={20}/></button>
           </div>
         </div>
 
+        {/* 4. 變更提示文字 */}
         <div className="bg-blue-50/80 px-4 py-2 border-b border-blue-100 text-xs text-blue-700 font-medium shrink-0">
-          💡 點選下方 1, 2, 3 按鈕，App 內地圖會直接拉近並定位到該設施！
+          💡 點選下方按鈕會直接拉近並定位到該設施！
         </div>
 
         <div className="flex-1 relative bg-gray-100">
@@ -1273,7 +1280,7 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 pb-28 font-sans">
+    <div className="min-h-screen bg-gray-100 pb-28 font-sans flex flex-col justify-between">
       
       {showOnboarding && (
         <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center p-6 bg-white/95 backdrop-blur-md animate-in fade-in overflow-y-auto">
@@ -1292,7 +1299,7 @@ export default function App() {
                 </label>
                 <div className="flex gap-2 mt-2">
                   <button onClick={handleUseDefaultImage} className="flex-1 py-2 bg-gray-100 rounded-xl text-xs font-bold text-gray-600 flex items-center justify-center gap-1 hover:bg-gray-200">
-                    <ImageIcon size={14}/> 使用內建圖檔
+                    <ImageIcon size={14}/> 使用內建美圖
                   </button>
                   <button onClick={handleClearImage} className="flex-1 py-2 bg-gray-100 rounded-xl text-xs font-bold text-gray-600 flex items-center justify-center gap-1 hover:bg-gray-200">
                     <Palette size={14}/> 使用純色背景
@@ -1304,7 +1311,7 @@ export default function App() {
                 <label className="block text-xs font-bold text-gray-400 mb-2 uppercase">圖片位置調整</label>
                 <div className="flex items-center gap-3 mb-4">
                   <span className="text-xs text-gray-400 font-bold">上</span>
-                  <input type="range" min="0" max="100" value={tempProfile.positionY} onChange={e => setTempProfile({...tempProfile, positionY: parseInt(e.target.value)})} className="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-pink-500"/>
+                  <input type="range" min="0" max="100" value={tempProfile.positionY} onChange={e => setTempProfile({...tempProfile, positionY: parseInt(e.target.value)})} className="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-[#6e5d51]"/>
                   <span className="text-xs text-gray-400 font-bold">下</span>
                 </div>
               </div>
@@ -1314,7 +1321,7 @@ export default function App() {
                 <input 
                   type="text" 
                   placeholder="請輸入名字" 
-                  className="w-full p-4 bg-gray-100 rounded-xl font-bold text-lg outline-none focus:ring-2 focus:ring-pink-300" 
+                  className="w-full p-4 bg-gray-100 rounded-xl font-bold text-lg outline-none focus:ring-2 focus:ring-stone-400" 
                   value={tempProfile.name === "請輸入名字" ? "" : tempProfile.name} 
                   onChange={e => setTempProfile({...tempProfile, name: e.target.value})} 
                 />
@@ -1346,353 +1353,363 @@ export default function App() {
       )}
 
       {!showOnboarding && (
-        <>
-          <div className="relative h-72 w-full overflow-hidden">
-            {data.userProfile.coverImage ? (
-              <img src={data.userProfile.coverImage} className="absolute inset-0 h-full w-full object-cover" style={{ objectPosition: `50% ${data.userProfile.coverPositionY}%`, transform: `scale(${data.userProfile.coverScale || 1})` }} />
-            ) : <div className={`w-full h-full ${tm.bg} flex items-center justify-center text-gray-300`}></div>}
-            
-            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
-            
-            <div className="absolute bottom-20 left-6 text-white">
-              <h1 className="text-4xl font-impact tracking-normal mb-1 flex items-baseline drop-shadow-md uppercase">
-                be rea<span className="text-xl mx-0.5 font-sans font-bold">.</span><span className="text-6xl mx-[1px]">D</span><span className="text-xl mx-0.5 font-sans font-bold">.</span>y
-              </h1>
-              <p className="text-sm font-medium opacity-90">{data.userProfile.name}的專屬攻略</p>
+        <div className="flex-1 flex flex-col justify-between">
+          <div>
+            <div className="relative h-72 w-full overflow-hidden">
+              {data.userProfile.coverImage ? (
+                <img src={data.userProfile.coverImage} className="absolute inset-0 h-full w-full object-cover" style={{ objectPosition: `50% ${data.userProfile.coverPositionY}%`, transform: `scale(${data.userProfile.coverScale || 1})` }} />
+              ) : <div className={`w-full h-full ${tm.bg} flex items-center justify-center text-gray-300`}></div>}
               
-              <label className="relative mt-3 inline-flex items-center gap-2 bg-white/20 backdrop-blur-md px-3.5 py-1.5 rounded-full text-xs hover:bg-white/30 transition-colors cursor-pointer overflow-hidden font-medium">
-                <Calendar size={14}/>
-                <span className="relative z-0">{data.userProfile.visitDate || "選擇日期"}</span>
-                <input type="date" className="absolute inset-0 opacity-0 w-full h-full z-10 cursor-pointer" value={data.userProfile.visitDate} onChange={e => setData(prev => ({...prev, userProfile: {...prev.userProfile, visitDate: e.target.value}}))} />
-              </label>
+              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
+              
+              <div className="absolute bottom-20 left-6 text-white">
+                <h1 className="text-4xl font-impact tracking-normal mb-1 flex items-baseline drop-shadow-md uppercase">
+                  be rea<span className="text-xl mx-0.5 font-sans font-bold">.</span><span className="text-6xl mx-[1px]">D</span><span className="text-xl mx-0.5 font-sans font-bold">.</span>y
+                </h1>
+                <p className="text-sm font-medium opacity-90">{data.userProfile.name}的專屬攻略</p>
+                
+                <label className="relative mt-3 inline-flex items-center gap-2 bg-white/20 backdrop-blur-md px-3.5 py-1.5 rounded-full text-xs hover:bg-white/30 transition-colors cursor-pointer overflow-hidden font-medium">
+                  <Calendar size={14}/>
+                  <span className="relative z-0">{data.userProfile.visitDate || "選擇日期"}</span>
+                  <input type="date" className="absolute inset-0 opacity-0 w-full h-full z-10 cursor-pointer" value={data.userProfile.visitDate} onChange={e => setData(prev => ({...prev, userProfile: {...prev.userProfile, visitDate: e.target.value}}))} />
+                </label>
+              </div>
+              
+              <div className="absolute bottom-20 right-6 text-white text-right">
+                <span className="text-xs opacity-80 block mb-1 font-medium">倒數</span>
+                <span className="text-4xl font-black flex items-baseline justify-end gap-1">{getDaysUntil(data.userProfile.visitDate)}<span className="text-sm font-medium">天</span></span>
+              </div>
+              
+              <button 
+                onClick={() => setIsAboutOpen(true)} 
+                className="absolute top-6 right-6 p-2 bg-white/20 backdrop-blur-md rounded-full text-white hover:bg-white/30 active:scale-95 transition-all"
+              >
+                <Settings size={20}/>
+              </button>
             </div>
-            
-            <div className="absolute bottom-20 right-6 text-white text-right">
-              <span className="text-xs opacity-80 block mb-1 font-medium">倒數</span>
-              <span className="text-4xl font-black flex items-baseline justify-end gap-1">{getDaysUntil(data.userProfile.visitDate)}<span className="text-sm font-medium">天</span></span>
-            </div>
-            
-            <button 
-              onClick={() => setIsAboutOpen(true)} 
-              className="absolute top-6 right-6 p-2 bg-white/20 backdrop-blur-md rounded-full text-white hover:bg-white/30 active:scale-95 transition-all"
-            >
-              <Settings size={20}/>
-            </button>
-          </div>
 
-          <main className="p-5 max-w-md mx-auto -mt-16 relative z-10">
-            
-            {/* 行程規劃 Tab */}
-            {activeTab === 'plan' && (
-              <div className="animate-in slide-in-from-bottom-4 duration-300">
-                <div className="bg-white/80 backdrop-blur-sm p-4 rounded-[2rem] border border-white shadow-sm min-h-[400px]">
-                  
-                  <div className="flex bg-gray-100 p-1 rounded-xl mb-4">
-                    <button onClick={() => setParkMode('land')} className={`flex-1 py-2 rounded-lg text-sm font-bold transition-all flex items-center justify-center gap-1.5 ${parkMode === 'land' ? 'bg-white shadow-sm text-pink-500' : 'text-gray-400 hover:text-gray-600'}`}>
-                      <span className="text-base">🏰</span> 樂園
-                    </button>
-                    <button onClick={() => setParkMode('sea')} className={`flex-1 py-2 rounded-lg text-sm font-bold transition-all flex items-center justify-center gap-1.5 ${parkMode === 'sea' ? 'bg-white shadow-sm text-blue-500' : 'text-gray-400 hover:text-gray-600'}`}>
-                      <span className="text-base">🌋</span> 海洋
-                    </button>
-                  </div>
-                  
-                  <div className="flex justify-between items-center mb-4 px-1">
-                    <h3 className="font-bold text-lg flex items-center gap-2 text-gray-800">
-                      一日行程 <span className="bg-white px-2 py-0.5 rounded-full text-xs text-gray-400 border font-medium">{data.plan[parkMode].length}</span>
-                    </h3>
-                    <div className="flex gap-2 items-center">
-                      <button onClick={() => setIsMapOpen(true)} className="text-blue-600 bg-blue-50 hover:bg-blue-100 px-3 py-1.5 rounded-lg text-sm font-bold flex items-center gap-1 transition-colors">
-                        <Map size={14}/> 地圖
+            <main className="p-5 max-w-md mx-auto -mt-16 relative z-10">
+              
+              {/* 行程規劃 Tab */}
+              {activeTab === 'plan' && (
+                <div className="animate-in slide-in-from-bottom-4 duration-300">
+                  <div className="bg-white/80 backdrop-blur-sm p-4 rounded-[2rem] border border-white shadow-sm min-h-[400px]">
+                    
+                    <div className="flex bg-gray-100 p-1 rounded-xl mb-4">
+                      <button onClick={() => setParkMode('land')} className={`flex-1 py-2 rounded-lg text-sm font-bold transition-all flex items-center justify-center gap-1.5 ${parkMode === 'land' ? 'bg-white shadow-sm text-stone-700' : 'text-gray-400 hover:text-gray-600'}`}>
+                        <span className="text-base">🏰</span> 樂園
                       </button>
-                      <button onClick={() => setIsAddModalOpen(true)} className={`w-8 h-8 flex items-center justify-center rounded-full text-white shadow-md transition-transform hover:scale-110 active:scale-95 ${tm.primary}`}>
-                        <Plus size={20}/>
+                      <button onClick={() => setParkMode('sea')} className={`flex-1 py-2 rounded-lg text-sm font-bold transition-all flex items-center justify-center gap-1.5 ${parkMode === 'sea' ? 'bg-white shadow-sm text-stone-700' : 'text-gray-400 hover:text-gray-600'}`}>
+                        <span className="text-base">🌋</span> 海洋
+                      </button>
+                    </div>
+                    
+                    <div className="flex justify-between items-center mb-4 px-1">
+                      <h3 className="font-bold text-lg flex items-center gap-2 text-gray-800">
+                        一日行程 <span className="bg-white px-2 py-0.5 rounded-full text-xs text-gray-400 border font-medium">{data.plan[parkMode].length}</span>
+                      </h3>
+                      <div className="flex gap-2 items-center">
+                        <button onClick={() => setIsMapOpen(true)} className="text-blue-600 bg-blue-50 hover:bg-blue-100 px-3 py-1.5 rounded-lg text-sm font-bold flex items-center gap-1 transition-colors">
+                          <Map size={14}/> 地圖
+                        </button>
+                        <button onClick={() => setIsAddModalOpen(true)} className={`w-8 h-8 flex items-center justify-center rounded-full text-white shadow-md transition-transform hover:scale-110 active:scale-95 ${tm.primary}`}>
+                          <Plus size={20}/>
+                        </button>
+                      </div>
+                    </div>
+                    
+                    <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEndPlan}>
+                      <SortableContext items={data.plan[parkMode]} strategy={verticalListSortingStrategy}>
+                        <div className="space-y-2 pb-4">
+                          {data.plan[parkMode].length === 0 ? (
+                            <div className="text-center py-10 text-gray-300 border-2 border-dashed border-gray-200 rounded-xl text-xs">點擊上方+新增第一個行程</div>
+                          ) : (
+                            data.plan[parkMode].map((item: any, index: number) => (
+                              <PlanItem key={item.id} id={item.id} item={item} onDelete={handleDeletePlanItem} index={index + 1} tm={tm} />
+                            ))
+                          )}
+                        </div>
+                      </SortableContext>
+                    </DndContext>
+                    
+                    <div className="pt-4 border-t border-gray-100 flex justify-center">
+                      <button onClick={handleCopyPlan} className="text-xs text-gray-400 font-bold hover:text-gray-600 border border-gray-200 px-4 py-2 rounded-full flex items-center gap-2">
+                        <ClipboardList size={14}/> 複製行程
                       </button>
                     </div>
                   </div>
-                  
-                  <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEndPlan}>
-                    <SortableContext items={data.plan[parkMode]} strategy={verticalListSortingStrategy}>
-                      <div className="space-y-2 pb-4">
-                        {data.plan[parkMode].length === 0 ? (
-                          <div className="text-center py-10 text-gray-300 border-2 border-dashed border-gray-200 rounded-xl text-xs">點擊上方+新增第一個行程</div>
-                        ) : (
-                          data.plan[parkMode].map((item: any, index: number) => (
-                            <PlanItem key={item.id} id={item.id} item={item} onDelete={handleDeletePlanItem} index={index + 1} tm={tm} />
-                          ))
+                </div>
+              )}
+
+              {/* 入園指南 Tab */}
+              {activeTab === 'todo' && (
+                <div className="space-y-6">
+                  {data.todo.map((group:any) => {
+                    const isCollapsed = collapsedGroups.includes(group.id);
+                    return (
+                      <div key={group.id} className="bg-white rounded-[2rem] p-5 shadow-sm border border-gray-100">
+                        <div className="flex justify-between items-center mb-2 pl-1 cursor-pointer" onClick={() => toggleGroupCollapse(group.id)}>
+                          <div className="flex items-center gap-2">
+                            {isCollapsed ? <ChevronDown size={20} className="text-gray-400"/> : <ChevronUp size={20} className="text-gray-400"/>}
+                            <h3 className="font-bold text-lg text-gray-800">{group.title}</h3>
+                          </div>
+                          {!isCollapsed && <CircularProgress percentage={getGroupProgress(group)} colorClass={tm.text} />}
+                        </div>
+                        
+                        {!isCollapsed && (
+                          <>
+                            <div className="mb-4"></div>
+                            <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={(e) => handleDragEndTodo(e, group.id)}>
+                              <SortableContext items={group.items} strategy={verticalListSortingStrategy}>
+                                <div className="flex flex-col gap-3">
+                                  {group.items.map((item:any) => (
+                                    <TodoItem 
+                                      key={item.id} 
+                                      item={item} 
+                                      tm={tm}
+                                      onToggle={(itemId:string, subId?:string) => toggleTodo(group.id, itemId, subId)}
+                                      onOpenMenu={(id:string, subId?:string) => openActionMenu(group.id, id, subId)}
+                                    />
+                                  ))}
+                                </div>
+                              </SortableContext>
+                            </DndContext>
+                            <div className="mt-4 flex items-center gap-3 px-4 py-3 bg-gray-50 rounded-xl">
+                              <Plus size={18} className="text-gray-400"/>
+                              <input type="text" placeholder="新增待辦..." className="bg-transparent outline-none text-sm font-medium w-full text-gray-600" onKeyDown={(e) => quickAdd(group.id, e)} />
+                            </div>
+                          </>
                         )}
                       </div>
-                    </SortableContext>
-                  </DndContext>
-                  
-                  <div className="pt-4 border-t border-gray-100 flex justify-center">
-                    <button onClick={handleCopyPlan} className="text-xs text-gray-400 font-bold hover:text-gray-600 border border-gray-200 px-4 py-2 rounded-full flex items-center gap-2">
-                      <ClipboardList size={14}/> 複製行程
-                    </button>
+                    );
+                  })}
+                  <div className="pt-4 flex gap-4 justify-center pb-8">
+                    <button onClick={handleCopyList} className="text-xs text-gray-400 font-bold hover:text-gray-600 border border-gray-200 px-4 py-2 rounded-full flex items-center gap-2"><Copy size={14}/> 複製清單</button>
+                    <button onClick={handleReset} className="text-xs text-red-300 font-bold hover:text-red-500 border border-red-100 px-4 py-2 rounded-full flex items-center gap-2"><RotateCcw size={14}/> 重置 APP</button>
                   </div>
                 </div>
-              </div>
-            )}
+              )}
 
-            {/* 入園指南 Tab */}
-            {activeTab === 'todo' && (
-              <div className="space-y-6">
-                {data.todo.map((group:any) => {
-                  const isCollapsed = collapsedGroups.includes(group.id);
-                  return (
-                    <div key={group.id} className="bg-white rounded-[2rem] p-5 shadow-sm border border-gray-100">
-                      <div className="flex justify-between items-center mb-2 pl-1 cursor-pointer" onClick={() => toggleGroupCollapse(group.id)}>
-                        <div className="flex items-center gap-2">
-                          {isCollapsed ? <ChevronDown size={20} className="text-gray-400"/> : <ChevronUp size={20} className="text-gray-400"/>}
-                          <h3 className="font-bold text-lg text-gray-800">{group.title}</h3>
-                        </div>
-                        {!isCollapsed && <CircularProgress percentage={getGroupProgress(group)} colorClass={tm.text} />}
+              {/* 攻略情報 Tab */}
+              {activeTab === 'news' && (
+                <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                  
+                  <div className="grid grid-cols-2 gap-4">
+                    <button 
+                      onClick={() => setGuideModal({ isOpen: true, park: 'land' })}
+                      className="bg-white p-5 rounded-[2rem] border border-gray-100 shadow-sm flex flex-col items-center justify-center text-center group hover:shadow-md transition-all active:scale-95"
+                    >
+                      <div className="w-12 h-12 rounded-2xl bg-stone-100 flex items-center justify-center mb-2 text-2xl group-hover:scale-110 transition-transform">
+                        🏰
                       </div>
-                      
-                      {!isCollapsed && (
-                        <>
-                          <div className="mb-4"></div>
-                          <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={(e) => handleDragEndTodo(e, group.id)}>
-                            <SortableContext items={group.items} strategy={verticalListSortingStrategy}>
-                              <div className="flex flex-col gap-3">
-                                {group.items.map((item:any) => (
-                                  <TodoItem 
-                                    key={item.id} 
-                                    item={item} 
-                                    tm={tm}
-                                    onToggle={(itemId:string, subId?:string) => toggleTodo(group.id, itemId, subId)}
-                                    onOpenMenu={(id:string, subId?:string) => openActionMenu(group.id, id, subId)}
-                                  />
+                      <span className="font-bold text-gray-800 text-base block">樂園攻略</span>
+                    </button>
+
+                    <button 
+                      onClick={() => setGuideModal({ isOpen: true, park: 'sea' })}
+                      className="bg-white p-5 rounded-[2rem] border border-gray-100 shadow-sm flex flex-col items-center justify-center text-center group hover:shadow-md transition-all active:scale-95"
+                    >
+                      <div className="w-12 h-12 rounded-2xl bg-blue-50 flex items-center justify-center mb-2 text-2xl group-hover:scale-110 transition-transform">
+                        🌋
+                      </div>
+                      <span className="font-bold text-gray-800 text-base block">海洋攻略</span>
+                    </button>
+                  </div>
+
+                  {/* 近期活動 */}
+                  <div className="bg-white rounded-[2rem] p-5 shadow-sm border border-gray-100">
+                    <h3 className="font-bold text-lg text-gray-800 mb-4 pl-1">
+                    🔥近期活動
+                    </h3>
+                    <div className="space-y-3">
+                      {getSortedNewsItems(data.news?.events || []).map((ev: any) => {
+                        const hasMainLink = ev.link && ev.link !== '#';
+                        const isFav = (data.favorites || []).includes(ev.id);
+
+                        return (
+                          <div key={ev.id} className={`p-4 rounded-2xl border transition-all ${isFav ? 'bg-amber-50/40 border-amber-200/80 shadow-sm' : 'bg-gray-50 border-gray-100'}`}>
+                            
+                            <div className="flex items-start justify-between gap-2">
+                              <div className="flex-1 min-w-0">
+                                {hasMainLink ? (
+                                  <a href={ev.link} target="_blank" rel="noreferrer" className="font-bold text-gray-800 text-sm hover:text-stone-600 transition-colors leading-snug block">
+                                    {ev.title}
+                                  </a>
+                                ) : (
+                                  <span className="font-bold text-gray-800 text-sm leading-snug block select-text">
+                                    {ev.title}
+                                  </span>
+                                )}
+                              </div>
+
+                              <button 
+                                onClick={() => toggleFavorite(ev.id)} 
+                                className="p-1 -mr-1 -mt-1 text-gray-300 hover:text-amber-400 active:scale-125 transition-all shrink-0"
+                                title={isFav ? "取消置頂" : "置頂此活動"}
+                              >
+                                <Star size={18} className={isFav ? "fill-amber-400 text-amber-400" : ""} />
+                              </button>
+                            </div>
+
+                            {ev.date && (
+                              <div className="mt-2 inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-white border border-gray-200/80 text-[11px] text-gray-500 font-medium shadow-2xs">
+                                <span>📅</span>
+                                <span>{ev.date}</span>
+                              </div>
+                            )}
+
+                            {ev.quickLinks && ev.quickLinks.length > 0 && (
+                              <div className="mt-3 pt-3 border-t border-gray-200/60 flex flex-wrap gap-2">
+                                {ev.quickLinks.map((q: any, qIdx: number) => (
+                                  <a 
+                                    key={qIdx} 
+                                    href={q.link} 
+                                    target="_blank" 
+                                    rel="noreferrer" 
+                                    className={`text-[11px] font-bold bg-white text-gray-600 px-3 py-1.5 rounded-xl border border-gray-200 transition-all shadow-2xs hover:${tm.border} hover:${tm.text}`}
+                                  >
+                                    {q.label}
+                                  </a>
                                 ))}
                               </div>
-                            </SortableContext>
-                          </DndContext>
-                          <div className="mt-4 flex items-center gap-3 px-4 py-3 bg-gray-50 rounded-xl">
-                            <Plus size={18} className="text-gray-400"/>
-                            <input type="text" placeholder="新增待辦..." className="bg-transparent outline-none text-sm font-medium w-full text-gray-600" onKeyDown={(e) => quickAdd(group.id, e)} />
+                            )}
                           </div>
-                        </>
-                      )}
+                        );
+                      })}
                     </div>
-                  );
-                })}
-                <div className="pt-4 flex gap-4 justify-center pb-8">
-                  <button onClick={handleCopyList} className="text-xs text-gray-400 font-bold hover:text-gray-600 border border-gray-200 px-4 py-2 rounded-full flex items-center gap-2"><Copy size={14}/> 複製清單</button>
-                  <button onClick={handleReset} className="text-xs text-red-300 font-bold hover:text-red-500 border border-red-100 px-4 py-2 rounded-full flex items-center gap-2"><RotateCcw size={14}/> 重置 APP</button>
-                </div>
-              </div>
-            )}
+                  </div>
 
-            {/* 攻略情報 Tab */}
-            {activeTab === 'news' && (
-              <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                
-                <div className="grid grid-cols-2 gap-4">
-                  <button 
-                    onClick={() => setGuideModal({ isOpen: true, park: 'land' })}
-                    className="bg-white p-5 rounded-[2rem] border border-gray-100 shadow-sm flex flex-col items-center justify-center text-center group hover:shadow-md transition-all active:scale-95"
-                  >
-                    <div className="w-12 h-12 rounded-2xl bg-pink-50 flex items-center justify-center mb-2 text-2xl group-hover:scale-110 transition-transform">
-                      🏰
-                    </div>
-                    <span className="font-bold text-gray-800 text-base block">樂園攻略</span>
-                  </button>
+                  {/* 近期新品 */}
+                  <div className="bg-white rounded-[2rem] p-5 shadow-sm border border-gray-100">
+                    <h3 className="font-bold text-lg text-gray-800 mb-4 pl-1">
+                    🛍️近期新品
+                    </h3>
+                    <div className="space-y-2">
+                      {getSortedNewsItems(data.news?.products || []).map((p: any) => {
+                        const hasMainLink = p.link && p.link !== '#';
+                        const isFav = (data.favorites || []).includes(p.id);
+                        const favicon = getFaviconUrl(p.link);
 
-                  <button 
-                    onClick={() => setGuideModal({ isOpen: true, park: 'sea' })}
-                    className="bg-white p-5 rounded-[2rem] border border-gray-100 shadow-sm flex flex-col items-center justify-center text-center group hover:shadow-md transition-all active:scale-95"
-                  >
-                    <div className="w-12 h-12 rounded-2xl bg-blue-50 flex items-center justify-center mb-2 text-2xl group-hover:scale-110 transition-transform">
-                      🌋
-                    </div>
-                    <span className="font-bold text-gray-800 text-base block">海洋攻略</span>
-                  </button>
-                </div>
-
-                {/* 近期活動 */}
-                <div className="bg-white rounded-[2rem] p-5 shadow-sm border border-gray-100">
-                  <h3 className="font-bold text-lg text-gray-800 mb-4 pl-1">
-                  🔥近期活動
-                  </h3>
-                  <div className="space-y-3">
-                    {getSortedNewsItems(data.news?.events || []).map((ev: any) => {
-                      const hasMainLink = ev.link && ev.link !== '#';
-                      const isFav = (data.favorites || []).includes(ev.id);
-
-                      return (
-                        <div key={ev.id} className={`p-4 rounded-2xl border transition-all ${isFav ? 'bg-amber-50/40 border-amber-200/80 shadow-sm' : 'bg-gray-50 border-gray-100'}`}>
-                          
-                          <div className="flex items-start justify-between gap-2">
-                            <div className="flex-1 min-w-0">
-                              {hasMainLink ? (
-                                <a href={ev.link} target="_blank" rel="noreferrer" className="font-bold text-gray-800 text-sm hover:text-pink-500 transition-colors leading-snug block">
-                                  {ev.title}
-                                </a>
+                        return (
+                          <div key={p.id} className={`p-3.5 rounded-xl border flex items-center justify-between gap-3 transition-all ${isFav ? 'bg-amber-50/40 border-amber-200/80 shadow-sm' : 'bg-gray-50 border-gray-100'}`}>
+                            <div className="flex items-center gap-3 flex-1 min-w-0">
+                              {favicon ? (
+                                <img src={favicon} alt="icon" className="w-5 h-5 rounded object-contain shrink-0"/>
                               ) : (
-                                <span className="font-bold text-gray-800 text-sm leading-snug block select-text">
-                                  {ev.title}
-                                </span>
+                                <ShoppingBag size={18} className="text-stone-400 shrink-0"/>
                               )}
+
+                              <div className="flex-1 min-w-0">
+                                {hasMainLink ? (
+                                  <a href={p.link} target="_blank" rel="noreferrer" className="font-bold text-gray-700 text-sm hover:text-stone-800 transition-colors block truncate">
+                                    {p.title}
+                                  </a>
+                                ) : (
+                                  <span className="font-bold text-gray-700 text-sm block truncate select-text">
+                                    {p.title}
+                                  </span>
+                                )}
+                                {p.date && (
+                                  <span className="text-[11px] text-gray-400 font-medium block mt-0.5">
+                                    📅 {p.date}
+                                  </span>
+                                )}
+                              </div>
                             </div>
 
                             <button 
-                              onClick={() => toggleFavorite(ev.id)} 
-                              className="p-1 -mr-1 -mt-1 text-gray-300 hover:text-amber-400 active:scale-125 transition-all shrink-0"
-                              title={isFav ? "取消置頂" : "置頂此活動"}
+                              onClick={() => toggleFavorite(p.id)} 
+                              className="p-1 text-gray-300 hover:text-amber-400 active:scale-125 transition-all shrink-0"
+                              title={isFav ? "取消置頂" : "置頂此新品"}
                             >
                               <Star size={18} className={isFav ? "fill-amber-400 text-amber-400" : ""} />
                             </button>
                           </div>
-
-                          {ev.date && (
-                            <div className="mt-2 inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-white border border-gray-200/80 text-[11px] text-gray-500 font-medium shadow-2xs">
-                              <span>📅</span>
-                              <span>{ev.date}</span>
-                            </div>
-                          )}
-
-                          {/* Quick Links：按鈕樣式連動主題色 */}
-                          {ev.quickLinks && ev.quickLinks.length > 0 && (
-                            <div className="mt-3 pt-3 border-t border-gray-200/60 flex flex-wrap gap-2">
-                              {ev.quickLinks.map((q: any, qIdx: number) => (
-                                <a 
-                                  key={qIdx} 
-                                  href={q.link} 
-                                  target="_blank" 
-                                  rel="noreferrer" 
-                                  className={`text-[11px] font-bold bg-white text-gray-600 px-3 py-1.5 rounded-xl border border-gray-200 transition-all shadow-2xs hover:${tm.border} hover:${tm.text}`}
-                                >
-                                  {q.label}
-                                </a>
-                              ))}
-                            </div>
-                          )}
-                        </div>
-                      );
-                    })}
+                        );
+                      })}
+                    </div>
                   </div>
+
                 </div>
+              )}
 
-                {/* 近期新品 */}
-                <div className="bg-white rounded-[2rem] p-5 shadow-sm border border-gray-100">
-                  <h3 className="font-bold text-lg text-gray-800 mb-4 pl-1">
-                  🛍️近期新品
-                  </h3>
-                  <div className="space-y-2">
-                    {getSortedNewsItems(data.news?.products || []).map((p: any) => {
-                      const hasMainLink = p.link && p.link !== '#';
-                      const isFav = (data.favorites || []).includes(p.id);
-                      const favicon = getFaviconUrl(p.link);
+              {/* 我的清單 Tab */}
+              {activeTab === 'mylist' && (
+                <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+                  <div className="space-y-4">
+                    
+                    <div className="bg-white p-6 rounded-[2rem] shadow-sm border border-gray-100 text-center mb-4">
+                      <ShoppingBag size={32} className={`mx-auto mb-2 ${tm.text} opacity-20`} />
+                      <h3 className="text-gray-800 font-bold">我的清單</h3>
+                      <p className="text-gray-400 text-xs mt-1">必買商品、必吃美食都記在這裡！</p>
+                    </div>
 
-                      return (
-                        <div key={p.id} className={`p-3.5 rounded-xl border flex items-center justify-between gap-3 transition-all ${isFav ? 'bg-amber-50/40 border-amber-200/80 shadow-sm' : 'bg-gray-50 border-gray-100'}`}>
-                          <div className="flex items-center gap-3 flex-1 min-w-0">
-                            {favicon ? (
-                              <img src={favicon} alt="icon" className="w-5 h-5 rounded object-contain shrink-0"/>
-                            ) : (
-                              <ShoppingBag size={18} className="text-purple-400 shrink-0"/>
-                            )}
-
-                            <div className="flex-1 min-w-0">
-                              {hasMainLink ? (
-                                <a href={p.link} target="_blank" rel="noreferrer" className="font-bold text-gray-700 text-sm hover:text-purple-600 transition-colors block truncate">
-                                  {p.title}
-                                </a>
-                              ) : (
-                                <span className="font-bold text-gray-700 text-sm block truncate select-text">
-                                  {p.title}
-                                </span>
-                              )}
-                              {p.date && (
-                                <span className="text-[11px] text-gray-400 font-medium block mt-0.5">
-                                  📅 {p.date}
-                                </span>
-                              )}
-                            </div>
-                          </div>
-
-                          <button 
-                            onClick={() => toggleFavorite(p.id)} 
-                            className="p-1 text-gray-300 hover:text-amber-400 active:scale-125 transition-all shrink-0"
-                            title={isFav ? "取消置頂" : "置頂此新品"}
+                    <div className="space-y-3">
+                      {data.myList?.map((item:any) => {
+                        const itemFavicon = item.link ? getFaviconUrl(item.link) : null;
+                        return (
+                          <div 
+                            key={item.id} 
+                            onClick={() => handleMyListDoubleTap(item)}
+                            className={`bg-white p-4 rounded-2xl border flex items-center gap-3 transition-all select-none cursor-pointer active:scale-[0.99] ${item.done ? 'opacity-50 border-gray-100' : 'border-gray-100 shadow-sm'}`}
                           >
-                            <Star size={18} className={isFav ? "fill-amber-400 text-amber-400" : ""} />
-                          </button>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-
-              </div>
-            )}
-
-            {/* 我的清單 Tab */}
-            {activeTab === 'mylist' && (
-              <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-                <div className="space-y-4">
-                  
-                  <div className="bg-white p-6 rounded-[2rem] shadow-sm border border-gray-100 text-center mb-4">
-                    <ShoppingBag size={32} className={`mx-auto mb-2 ${tm.text} opacity-20`} />
-                    <h3 className="text-gray-800 font-bold">我的清單</h3>
-                    <p className="text-gray-400 text-xs mt-1">必買商品、必吃美食都記在這裡！</p>
-                  </div>
-
-                  <div className="space-y-3">
-                    {data.myList?.map((item:any) => {
-                      const itemFavicon = item.link ? getFaviconUrl(item.link) : null;
-                      return (
-                        <div 
-                          key={item.id} 
-                          onClick={() => handleMyListDoubleTap(item)}
-                          className={`bg-white p-4 rounded-2xl border flex items-center gap-3 transition-all select-none cursor-pointer active:scale-[0.99] ${item.done ? 'opacity-50 border-gray-100' : 'border-gray-100 shadow-sm'}`}
-                        >
-                          <button 
-                            onClick={(e) => { e.stopPropagation(); toggleMyList(item.id); }} 
-                            className={`min-w-[24px] h-6 rounded-full border-2 flex items-center justify-center transition-colors shrink-0 ${item.done ? tm.primary + ' border-transparent' : 'border-gray-300'}`}
-                          >
-                            {item.done && <CheckCircle2 size={16} className="text-white" />}
-                          </button>
-                          
-                          <span className={`flex-1 font-medium text-[15px] ${item.done ? 'line-through text-gray-400' : 'text-gray-700'}`}>
-                            {item.title}
-                          </span>
-                          
-                          {/* 右側：[🔗 連結/Favicon 18px] ➔ [🗑️ 刪除按鈕] (最右側防誤觸) */}
-                          <div className="flex items-center gap-2.5 shrink-0">
-                            {item.link && item.link !== '#' ? (
-                              <a href={item.link} target="_blank" rel="noreferrer" onClick={e => e.stopPropagation()} className="p-1 block shrink-0">
-                                {itemFavicon ? (
-                                  <img src={itemFavicon} alt="icon" className="w-[18px] h-[18px] rounded-md object-contain opacity-80 hover:opacity-100 block shrink-0" />
-                                ) : (
-                                  <ExternalLink size={16} className="text-pink-400 hover:text-pink-600 shrink-0"/>
-                                )}
-                              </a>
-                            ) : null}
-
                             <button 
-                              onClick={(e) => { e.stopPropagation(); deleteMyList(item.id); }} 
-                              className="text-gray-300 hover:text-red-400 p-1 rounded-lg transition-colors shrink-0"
-                              title="刪除"
+                              onClick={(e) => { e.stopPropagation(); toggleMyList(item.id); }} 
+                              className={`min-w-[24px] h-6 rounded-full border-2 flex items-center justify-center transition-colors shrink-0 ${item.done ? tm.primary + ' border-transparent' : 'border-gray-300'}`}
                             >
-                              <Trash2 size={16}/>
+                              {item.done && <CheckCircle2 size={16} className="text-white" />}
                             </button>
+                            
+                            <span className={`flex-1 font-medium text-[15px] ${item.done ? 'line-through text-gray-400' : 'text-gray-700'}`}>
+                              {item.title}
+                            </span>
+                            
+                            <div className="flex items-center gap-2.5 shrink-0">
+                              {item.link && item.link !== '#' ? (
+                                <a href={item.link} target="_blank" rel="noreferrer" onClick={e => e.stopPropagation()} className="p-1 block shrink-0">
+                                  {itemFavicon ? (
+                                    <img src={itemFavicon} alt="icon" className="w-[18px] h-[18px] rounded-md object-contain opacity-80 hover:opacity-100 block shrink-0" />
+                                  ) : (
+                                    <ExternalLink size={16} className="text-stone-400 hover:text-stone-600 shrink-0"/>
+                                  )}
+                                </a>
+                              ) : null}
+
+                              <button 
+                                onClick={(e) => { e.stopPropagation(); deleteMyList(item.id); }} 
+                                className="text-gray-300 hover:text-red-400 p-1 rounded-lg transition-colors shrink-0"
+                                title="刪除"
+                              >
+                                <Trash2 size={16}/>
+                              </button>
+                            </div>
                           </div>
-                        </div>
-                      );
-                    })}
+                        );
+                      })}
+                    </div>
+
+                    <button 
+                      onClick={handleAddMyList} 
+                      className={`w-full mt-4 px-6 py-4 rounded-xl ${tm.primary} ${tm.buttonText || 'text-white'} font-bold shadow-lg hover:opacity-90 active:scale-95 transition-all flex items-center justify-center gap-2`}
+                    >
+                      <Plus size={20}/> 新增項目
+                    </button>
                   </div>
-
-                  <button 
-                    onClick={handleAddMyList} 
-                    className={`w-full mt-4 px-6 py-4 rounded-xl ${tm.primary} ${tm.buttonText || 'text-white'} font-bold shadow-lg hover:opacity-90 active:scale-95 transition-all flex items-center justify-center gap-2`}
-                  >
-                    <Plus size={20}/> 新增項目
-                  </button>
                 </div>
-              </div>
-            )}
-          </main>
+              )}
+            </main>
+          </div>
 
+          {/* 💡 1. 頁尾著作權標示 (Copyright Footer) */}
+          <footer className="py-6 text-center text-xs text-gray-400 font-medium space-y-0.5 select-none opacity-80">
+            <p>© 2026 bereaDy</p>
+            <p className="text-[11px] text-gray-400/80">Created by @tnnodisney</p>
+          </footer>
+        </div>
+      )}
+
+      {!showOnboarding && (
+        <>
           <ActionMenu isOpen={menuOpen} onClose={() => setMenuOpen(false)} onAction={executeAction} itemType={selectedItem?.subId ? 'sub' : 'item'} />
           
           <ItemEditModal 
@@ -1722,7 +1739,6 @@ export default function App() {
           <AddItemModal isOpen={isAddModalOpen} onClose={() => setIsAddModalOpen(false)} onAdd={handleAddFacility} park={parkMode} facilitiesDb={facilitiesDb} tm={tm} />
           <MapModal isOpen={isMapOpen} onClose={() => setIsMapOpen(false)} items={data.plan[parkMode]} park={parkMode} facilitiesDb={facilitiesDb} />
           
-          {/* 💡 底部導覽列「行程規劃」正式更新為 Map 🗺️ 图示 */}
           <nav className={`fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 w-full z-40 shadow-lg transition-transform duration-300 ${showNav ? 'translate-y-0' : 'translate-y-full'}`}>
             <div className="grid grid-cols-4 items-end pb-10 pt-3">
               <button onClick={() => setActiveTab('todo')} className="flex flex-col items-center gap-1 transition-all active:scale-95 group">
