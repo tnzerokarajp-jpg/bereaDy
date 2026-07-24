@@ -268,7 +268,6 @@ const ItemEditModal: React.FC<ItemEditModalProps> = ({ isOpen, onClose, onSave, 
   );
 };
 
-// 💡 2. 行程移動順暢修復：CSS Translate + Touch-action 純粹鎖定，絕不閃爍
 function PlanItem({ id, item, onDelete, index, tm }: any) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id });
   const style = { 
@@ -430,7 +429,7 @@ function ActionMenu({ isOpen, onClose, onAction, itemType }: any) {
           </button>
           {!isSub && <button onClick={() => onAction('indent')} className="flex flex-col items-center gap-2 text-gray-600 active:scale-95"><div className="p-4 bg-gray-100 rounded-2xl"><ArrowRight size={24}/></div><span className="text-xs font-bold">縮排</span></button>}
           {isSub && <button onClick={() => onAction('outdent')} className="flex flex-col items-center gap-2 text-gray-600 active:scale-95"><div className="p-4 bg-gray-100 rounded-2xl"><ArrowLeft size={24}/></div><span className="text-xs font-bold">升級</span></button>}
-          <button onClick={() => onAction('move')} className="flex flex-col items-center gap-2 text-gray-600 active:scale-95"><div className="p-4 bg-gray-100 rounded-2xl"><FolderInput size={24}/></div><span className="text-xs font-bold">移動</span></button>
+          <button onClick={() => onAction('move')} className="flex flex-col items-center gap-2 text-gray-600 active:scale-95"><div className="p-4 bg-gray-100 rounded-2xl"><FolderInput size={24}/></div><span className="text-xs font-bold font-bold">移動</span></button>
           <button onClick={() => onAction('delete')} className="flex flex-col items-center gap-2 text-red-500 active:scale-95"><div className="p-4 bg-red-50 rounded-2xl"><Trash2 size={24}/></div><span className="text-xs font-bold">刪除</span></button>
         </div>
         <button onClick={onClose} className="w-full mt-8 py-3 rounded-xl bg-gray-100 font-bold text-gray-600">取消</button>
@@ -439,6 +438,7 @@ function ActionMenu({ isOpen, onClose, onAction, itemType }: any) {
   );
 }
 
+// 💡 「關於」彈窗：將標題改用 SVG 深色圖檔 Logo (替代微軟 Impact 字型)
 interface AboutModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -456,9 +456,13 @@ const AboutModal: React.FC<AboutModalProps> = ({ isOpen, onClose, onOpenSettings
       <div className="relative w-full max-w-sm bg-white rounded-[2.5rem] p-6 shadow-2xl border border-white flex flex-col space-y-5">
         
         <div className="flex justify-between items-center border-b pb-3">
-          <h3 className="text-3xl font-impact tracking-normal uppercase text-gray-800 flex items-baseline">
-            be rea<span className="text-xs mx-0.5 font-sans font-bold">.</span><span className="text-4xl mx-[0.5px]">D</span><span className="text-xs mx-0.5 font-sans font-bold">.</span>y
-          </h3>
+          {/* 深色 SVG Logo (h-11，精緻比例) */}
+          <img 
+            src="/D_3.png" 
+            alt="be reaDy" 
+            className="h-11 w-auto object-contain"
+            onError={(e: any) => { e.target.onerror = null; e.target.src = '/D_3.png'; }}
+          />
           
           <button 
             onClick={() => { onClose(); onOpenSettings(); }} 
@@ -502,7 +506,7 @@ const AboutModal: React.FC<AboutModalProps> = ({ isOpen, onClose, onOpenSettings
         <div className="text-xs space-y-1 bg-amber-50/60 p-3.5 rounded-2xl border border-amber-100/80">
           <div className="font-bold text-amber-800 flex items-center justify-between">
             <span>📌 更新說明</span>
-            <span className="text-[10px] text-amber-600 font-normal">更新日期：{info.lastUpdate || '2026/07/23'}</span>
+            <span className="text-[10px] text-amber-600 font-normal">最新：{info.lastUpdate || '2026/07/23'}</span>
           </div>
           <p className="text-amber-700/90 text-[11px] leading-relaxed whitespace-pre-line">
             {info.updateNotice || '固定每月 1 號更新，無法完全及時！有需要請自行調整內容！'}
@@ -598,7 +602,6 @@ const ParkGuideModal: React.FC<ParkGuideModalProps> = ({ isOpen, onClose, parkTy
   );
 };
 
-// 💡 3. 新增行程 Modal 殘留粉色修復：改成質感深灰/深咖啡色
 interface AddItemModalProps { isOpen: boolean; onClose: () => void; onAdd: (facility: Facility) => void; park: 'land' | 'sea'; facilitiesDb: Facility[]; tm: any; }
 const AddItemModal: React.FC<AddItemModalProps> = ({ isOpen, onClose, onAdd, park, facilitiesDb, tm }) => {
   const [selectedCategory, setSelectedCategory] = useState<FacilityType>('ride');
@@ -684,7 +687,6 @@ const AddItemModal: React.FC<AddItemModalProps> = ({ isOpen, onClose, onAdd, par
   );
 }
 
-// 💡 4 & 5. 行程地圖提示文字簡化 & 按鈕文字【畫路線圖】
 interface MapModalProps { isOpen: boolean; onClose: () => void; items: any[]; park: 'land' | 'sea'; facilitiesDb: Facility[]; }
 const MapModal: React.FC<MapModalProps> = ({ isOpen, onClose, items, park, facilitiesDb }) => {
   if (!isOpen) return null;
@@ -726,7 +728,6 @@ const MapModal: React.FC<MapModalProps> = ({ isOpen, onClose, items, park, facil
             </h3>
           </div>
           <div className="flex items-center gap-2">
-            {/* 5. 變更按鈕文字為【畫路線圖】 */}
             <button onClick={openExternalMap} className="text-xs bg-blue-600 text-white px-3 py-2 rounded-xl font-bold flex items-center gap-1.5 shadow-md hover:bg-blue-700 active:scale-95 transition-all">
               <Navigation size={14}/> 畫路線圖 ↗
             </button>
@@ -734,7 +735,6 @@ const MapModal: React.FC<MapModalProps> = ({ isOpen, onClose, items, park, facil
           </div>
         </div>
 
-        {/* 4. 變更提示文字 */}
         <div className="bg-blue-50/80 px-4 py-2 border-b border-blue-100 text-xs text-blue-700 font-medium shrink-0">
           💡 點選下方按鈕會直接拉近並定位到該設施！
         </div>
@@ -1362,10 +1362,14 @@ export default function App() {
               
               <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
               
+              {/* 💡 封面 Banner 區塊：改用白色 SVG Logo (h-20，80px) 替代 Impact 字體 */}
               <div className="absolute bottom-20 left-6 text-white">
-                <h1 className="text-4xl font-impact tracking-normal mb-1 flex items-baseline drop-shadow-md uppercase">
-                  be rea<span className="text-xl mx-0.5 font-sans font-bold">.</span><span className="text-6xl mx-[1px]">D</span><span className="text-xl mx-0.5 font-sans font-bold">.</span>y
-                </h1>
+                <img 
+                  src="/D_4.png" 
+                  alt="be reaDy" 
+                  className="h-20 w-auto object-contain drop-shadow-md mb-2"
+                  onError={(e: any) => { e.target.onerror = null; e.target.src = '/D_4.png'; }}
+                />
                 <p className="text-sm font-medium opacity-90">{data.userProfile.name}的專屬攻略</p>
                 
                 <label className="relative mt-3 inline-flex items-center gap-2 bg-white/20 backdrop-blur-md px-3.5 py-1.5 rounded-full text-xs hover:bg-white/30 transition-colors cursor-pointer overflow-hidden font-medium">
@@ -1519,7 +1523,7 @@ export default function App() {
                   {/* 近期活動 */}
                   <div className="bg-white rounded-[2rem] p-5 shadow-sm border border-gray-100">
                     <h3 className="font-bold text-lg text-gray-800 mb-4 pl-1">
-                    🔥近期活動
+                      近期活動
                     </h3>
                     <div className="space-y-3">
                       {getSortedNewsItems(data.news?.events || []).map((ev: any) => {
@@ -1582,7 +1586,7 @@ export default function App() {
                   {/* 近期新品 */}
                   <div className="bg-white rounded-[2rem] p-5 shadow-sm border border-gray-100">
                     <h3 className="font-bold text-lg text-gray-800 mb-4 pl-1">
-                    🛍️近期新品
+                      近期新品
                     </h3>
                     <div className="space-y-2">
                       {getSortedNewsItems(data.news?.products || []).map((p: any) => {
@@ -1700,7 +1704,6 @@ export default function App() {
             </main>
           </div>
 
-          {/* 💡 1. 頁尾著作權標示 (Copyright Footer) */}
           <footer className="py-6 text-center text-xs text-gray-400 font-medium space-y-0.5 select-none opacity-80">
             <p>© 2026 bereaDy</p>
             <p className="text-[11px] text-gray-400/80">Created by @tnnodisney</p>
