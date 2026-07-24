@@ -531,7 +531,7 @@ const AboutModal: React.FC<AboutModalProps> = ({ isOpen, onClose, onOpenSettings
         <div className="bg-gray-50 p-3 rounded-2xl border border-gray-100 flex items-center justify-between text-xs">
           <span className="font-bold text-gray-700 flex items-center gap-1.5">
             <span className="text-sm">💬</span>
-            <span>有任何使用上的建議想告訴我( •̀ᴗ•́ )و ̑̑</span>
+            <span>有使用上的建議想告訴我？</span>
           </span>
           <a 
             href={info.feedbackUrl || 'https://portaly.cc/tnnodisney'} 
