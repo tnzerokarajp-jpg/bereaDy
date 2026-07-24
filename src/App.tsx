@@ -1555,7 +1555,7 @@ export default function App() {
                   {/* 近期活動 */}
                   <div className="bg-white rounded-[2rem] p-5 shadow-sm border border-gray-100">
                     <h3 className="font-bold text-lg text-gray-800 mb-4 pl-1">
-                      近期活動
+                    🔥近期活動
                     </h3>
                     <div className="space-y-3">
                       {getSortedNewsItems(data.news?.events || []).map((ev: any) => {
@@ -1618,7 +1618,7 @@ export default function App() {
                   {/* 近期新品 */}
                   <div className="bg-white rounded-[2rem] p-5 shadow-sm border border-gray-100">
                     <h3 className="font-bold text-lg text-gray-800 mb-4 pl-1">
-                      近期新品
+                    🛍️近期新品
                     </h3>
                     <div className="space-y-2">
                       {getSortedNewsItems(data.news?.products || []).map((p: any) => {
