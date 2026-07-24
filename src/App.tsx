@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Settings, CheckCircle2, Link as LinkIcon, Plus, Trash2, ShoppingBag,
 Ticket, Sparkles, Anchor, Castle, ExternalLink, ArrowRight, ArrowLeft, Edit3,
 Calendar, Upload, FolderInput, Copy, RotateCcw, Star, List, Map, X, Utensils,
-FerrisWheel, Search, ChevronDown, ChevronUp, Image as ImageIcon, Palette, ClipboardList, GalleryVertical, Navigation, BookOpen, Heart, Camera } from 'lucide-react';
+FerrisWheel, Search, ChevronDown, ChevronUp, Image as ImageIcon, Palette, ClipboardList, GalleryVertical, Navigation, BookOpen, Heart, Camera, MessageSquare } from 'lucide-react';
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, TouchSensor, MouseSensor, useSensor, useSensors } from '@dnd-kit/core';
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy, useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
@@ -83,7 +83,8 @@ const DEFAULT_DATA = {
     disclaimer: '此 App 非官方製作，內容僅供參考。請以官方資訊為準，勿作商業用途。',
     igUrl: 'https://www.instagram.com/tnnodisney',
     threadsUrl: 'https://www.threads.net/@tnnodisney',
-    sponsorUrl: 'https://portaly.cc/tnnodisney'
+    sponsorUrl: 'https://portaly.cc/tnnodisney',
+    feedbackUrl: 'https://portaly.cc/tnnodisney'
   },
   plan: { land: [] as any[], sea: [] as any[] },
   myList: [{ id: 'b1', title: '記得新增你的清單!', link: '', done: false }],
@@ -429,7 +430,7 @@ function ActionMenu({ isOpen, onClose, onAction, itemType }: any) {
           </button>
           {!isSub && <button onClick={() => onAction('indent')} className="flex flex-col items-center gap-2 text-gray-600 active:scale-95"><div className="p-4 bg-gray-100 rounded-2xl"><ArrowRight size={24}/></div><span className="text-xs font-bold">縮排</span></button>}
           {isSub && <button onClick={() => onAction('outdent')} className="flex flex-col items-center gap-2 text-gray-600 active:scale-95"><div className="p-4 bg-gray-100 rounded-2xl"><ArrowLeft size={24}/></div><span className="text-xs font-bold">升級</span></button>}
-          <button onClick={() => onAction('move')} className="flex flex-col items-center gap-2 text-gray-600 active:scale-95"><div className="p-4 bg-gray-100 rounded-2xl"><FolderInput size={24}/></div><span className="text-xs font-bold font-bold">移動</span></button>
+          <button onClick={() => onAction('move')} className="flex flex-col items-center gap-2 text-gray-600 active:scale-95"><div className="p-4 bg-gray-100 rounded-2xl"><FolderInput size={24}/></div><span className="text-xs font-bold">移動</span></button>
           <button onClick={() => onAction('delete')} className="flex flex-col items-center gap-2 text-red-500 active:scale-95"><div className="p-4 bg-red-50 rounded-2xl"><Trash2 size={24}/></div><span className="text-xs font-bold">刪除</span></button>
         </div>
         <button onClick={onClose} className="w-full mt-8 py-3 rounded-xl bg-gray-100 font-bold text-gray-600">取消</button>
@@ -438,7 +439,7 @@ function ActionMenu({ isOpen, onClose, onAction, itemType }: any) {
   );
 }
 
-// 💡 「關於」彈窗：將標題改用 SVG 深色圖檔 Logo (替代微軟 Impact 字型)
+// 💡 「關於」彈窗（Info 頁面）：比照圖 2 顏色、最新文案與圖 3 綠色對話框 Icon
 interface AboutModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -452,16 +453,16 @@ const AboutModal: React.FC<AboutModalProps> = ({ isOpen, onClose, onOpenSettings
   const safeTm = tm || THEMES.cream;
 
   return (
-    <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/50 backdrop-blur-md p-4 animate-in fade-in">
-      <div className="relative w-full max-w-sm bg-white rounded-[2.5rem] p-6 shadow-2xl border border-white flex flex-col space-y-5">
+    <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/50 backdrop-blur-md p-4 animate-in fade-in overflow-y-auto">
+      <div className="relative w-full max-w-sm bg-white rounded-[2.5rem] p-6 shadow-2xl border border-white flex flex-col space-y-4 my-auto">
         
+        {/* 頂部 Logo 與設定 */}
         <div className="flex justify-between items-center border-b pb-3">
-          {/* 深色 SVG Logo (h-11，精緻比例) */}
           <img 
             src="/D_3.png" 
             alt="be reaDy" 
-            className="h-11 w-auto object-contain"
-            onError={(e: any) => { e.target.onerror = null; e.target.src = '/D_3.png'; }}
+            className="h-10 w-auto object-contain"
+            onError={(e: any) => { e.target.onerror = null; e.target.src = '/logo_dark.svg'; }}
           />
           
           <button 
@@ -472,50 +473,81 @@ const AboutModal: React.FC<AboutModalProps> = ({ isOpen, onClose, onOpenSettings
           </button>
         </div>
 
-        <div className="bg-gray-50 p-3.5 rounded-2xl border border-gray-100 text-center">
-          <p className="text-sm font-bold text-gray-700">歡迎追蹤社群看更多攻略！ ✨</p>
+        {/* 歡迎文案 */}
+        <div className="bg-gray-50/80 p-3 rounded-2xl border border-gray-100 text-center">
+          <p className="text-xs font-bold text-gray-700">歡迎追蹤社群看更多攻略！ ✨</p>
         </div>
 
-        <div className="grid grid-cols-3 gap-2">
+        {/* 社群雙欄按鈕 (IG & Threads) */}
+        <div className="grid grid-cols-2 gap-2.5">
           <a 
             href={info.igUrl || 'https://www.instagram.com/tnnodisney'} 
             target="_blank" 
             rel="noreferrer" 
-            className="flex flex-col items-center justify-center py-3 px-2 bg-gradient-to-tr from-amber-500 via-rose-500 to-purple-600 text-white rounded-2xl font-bold text-xs shadow-sm hover:opacity-90 active:scale-95 transition-all gap-1"
+            className="flex items-center justify-center py-3 px-3 bg-gradient-to-tr from-amber-500 via-rose-500 to-purple-600 text-white rounded-2xl font-bold text-xs shadow-sm hover:opacity-90 active:scale-95 transition-all gap-1.5"
           >
-            <Camera size={18}/> Instagram
+            <Camera size={16}/> Instagram
           </a>
           <a 
             href={info.threadsUrl || 'https://www.threads.net/@tnnodisney'} 
             target="_blank" 
             rel="noreferrer" 
-            className="flex flex-col items-center justify-center py-3 px-2 bg-black text-white rounded-2xl font-bold text-xs shadow-sm hover:bg-gray-800 active:scale-95 transition-all gap-1"
+            className="flex items-center justify-center py-3 px-3 bg-black text-white rounded-2xl font-bold text-xs shadow-sm hover:bg-gray-800 active:scale-95 transition-all gap-1.5"
           >
             <span className="font-black text-sm">@</span> Threads
           </a>
+        </div>
+
+        {/* 💡 1 & 2. 小額贊助區塊：換成圖 2 明亮薄荷綠/湖水綠顏色 + 最新文字 */}
+        <div className="bg-gradient-to-br from-[#6ed4d6] to-[#4ab3b6] p-5 rounded-[1.8rem] text-white text-center shadow-md relative overflow-hidden flex flex-col items-center">
+          <div className="text-base font-bold flex items-center justify-center gap-1.5 mb-1">
+            <span>支持更新 (*,,•ᴗ•,,)ꔛ‬ꕤ</span>
+          </div>
+          <p className="text-[11px] opacity-95 mb-3.5 leading-snug font-medium">
+            如果您喜歡 bereaDy，歡迎給我一點鼓勵！
+          </p>
           <a 
             href={info.sponsorUrl || 'https://portaly.cc/tnnodisney'} 
             target="_blank" 
             rel="noreferrer" 
-            className="flex flex-col items-center justify-center py-3 px-2 bg-stone-700 text-white rounded-2xl font-bold text-xs shadow-sm hover:bg-stone-800 active:scale-95 transition-all gap-1"
+            className="w-full py-2.5 bg-white text-[#3ca1a4] font-black rounded-full text-xs shadow-sm hover:bg-gray-50 active:scale-95 transition-all flex items-center justify-center gap-1"
           >
-            <Heart size={18}/> 小額贊助
+            <span>小額支持 ♡</span>
           </a>
         </div>
 
+        {/* 更新說明 */}
         <div className="text-xs space-y-1 bg-amber-50/60 p-3.5 rounded-2xl border border-amber-100/80">
           <div className="font-bold text-amber-800 flex items-center justify-between">
             <span>📌 更新說明</span>
             <span className="text-[10px] text-amber-600 font-normal">最新：{info.lastUpdate || '2026/07/23'}</span>
           </div>
           <p className="text-amber-700/90 text-[11px] leading-relaxed whitespace-pre-line">
-            {info.updateNotice || '固定每月 1 號更新，無法完全及時！有需要請自行調整內容！'}
+            {info.updateNotice || '固定每月 1 號更新當月活動，無法完全即時。'}
           </p>
         </div>
 
+        {/* 💡 3 & 4. 問題回饋區塊：薄荷綠 MessageSquare Icon (同圖 3) + 最新文字 */}
+        <div className="bg-gray-50 p-3 rounded-2xl border border-gray-100 flex items-center justify-between text-xs">
+          <span className="font-bold text-gray-700 flex items-center gap-2">
+            <MessageSquare size={16} className="text-[#3ca1a4]" />
+            <span>有建議想告訴我？</span>
+          </span>
+          <a 
+            href={info.feedbackUrl || 'https://portaly.cc/tnnodisney'} 
+            target="_blank" 
+            rel="noreferrer"
+            className="font-bold text-[#3ca1a4] hover:opacity-80 flex items-center gap-0.5 active:scale-95 transition-all"
+          >
+            <span>填寫回饋表單</span>
+            <span>➔</span>
+          </a>
+        </div>
+
+        {/* 注意事項 */}
         <div className="text-[11px] text-gray-400 bg-gray-50 p-3 rounded-2xl border border-gray-100 leading-relaxed whitespace-pre-line">
           <span className="font-bold text-gray-500 block mb-0.5">⚠️ 注意事項</span>
-          {info.disclaimer || '此 App 非官方製作，內容僅供參考。請以官方資訊為準，勿作商業用途。'}
+          {info.disclaimer || 'bereaDy 是一款非官方攻略幫手。內容為個人整理與旅遊資訊分享，活動、營運及商品資訊可能有所異動，請以東京迪士尼度假區官方最新公告為準。'}
         </div>
 
         <button 
@@ -932,7 +964,8 @@ export default function App() {
                 disclaimer: aboutObj.disclaimer || prev.about?.disclaimer || '此 App 非官方製作，內容僅供參考。請以官方資訊為準，勿作商業用途。',
                 igUrl: aboutObj.ig_url || prev.about?.igUrl || 'https://www.instagram.com/tnnodisney',
                 threadsUrl: aboutObj.threads_url || prev.about?.threadsUrl || 'https://www.threads.net/@tnnodisney',
-                sponsorUrl: aboutObj.sponsor_url || prev.about?.sponsorUrl || 'https://portaly.cc/tnnodisney'
+                sponsorUrl: aboutObj.sponsor_url || prev.about?.sponsorUrl || 'https://portaly.cc/tnnodisney',
+                feedbackUrl: aboutObj.feedback_url || prev.about?.feedbackUrl || 'https://portaly.cc/tnnodisney'
               }
             }));
           }
@@ -1362,13 +1395,12 @@ export default function App() {
               
               <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
               
-              {/* 💡 封面 Banner 區塊：改用白色 SVG Logo (h-20，80px) 替代 Impact 字體 */}
               <div className="absolute bottom-20 left-6 text-white">
                 <img 
                   src="/D_4.png" 
                   alt="be reaDy" 
                   className="h-20 w-auto object-contain drop-shadow-md mb-2"
-                  onError={(e: any) => { e.target.onerror = null; e.target.src = '/D_4.png'; }}
+                  onError={(e: any) => { e.target.onerror = null; e.target.src = '/logo_white.svg'; }}
                 />
                 <p className="text-sm font-medium opacity-90">{data.userProfile.name}的專屬攻略</p>
                 
