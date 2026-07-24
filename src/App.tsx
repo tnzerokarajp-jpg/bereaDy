@@ -520,7 +520,7 @@ const AboutModal: React.FC<AboutModalProps> = ({ isOpen, onClose, onOpenSettings
         <div className="text-xs space-y-1 bg-amber-50/60 p-3.5 rounded-2xl border border-amber-100/80">
           <div className="font-bold text-amber-800 flex items-center justify-between">
             <span>📍 更新說明</span>
-            <span className="text-[10px] text-amber-600 font-normal">最新：{info.lastUpdate || '2026/07/23'}</span>
+            <span className="text-[10px] text-amber-600 font-normal">更新時間：{info.lastUpdate || '2026/07/23'}</span>
           </div>
           <p className="text-amber-700/90 text-[11px] leading-relaxed whitespace-pre-line">
             {info.updateNotice || '固定每月 1 號更新當月活動，無法完全即時。'}
