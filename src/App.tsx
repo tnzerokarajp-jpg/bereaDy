@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Settings, CheckCircle2, Link as LinkIcon, Plus, Trash2, ShoppingBag,
 Ticket, Sparkles, Anchor, Castle, ExternalLink, ArrowRight, ArrowLeft, Edit3,
 Calendar, Upload, FolderInput, Copy, RotateCcw, Star, List, Map, X, Utensils,
-FerrisWheel, Search, ChevronDown, ChevronUp, Image as ImageIcon, Palette, ClipboardList, GalleryVertical, Navigation, BookOpen, Heart, Camera, MessageSquare } from 'lucide-react';
+FerrisWheel, Search, ChevronDown, ChevronUp, Image as ImageIcon, Palette, ClipboardList, GalleryVertical, Navigation, BookOpen, Heart, Camera } from 'lucide-react';
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, TouchSensor, MouseSensor, useSensor, useSensors } from '@dnd-kit/core';
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy, useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
@@ -439,7 +439,7 @@ function ActionMenu({ isOpen, onClose, onAction, itemType }: any) {
   );
 }
 
-// 💡 「關於」彈窗（Info 頁面）：比照圖 2 顏色、最新文案與圖 3 綠色對話框 Icon
+// 💡 「關於」彈窗（Info 頁面）：問題回饋區塊已改用真實 Emoji 💬
 interface AboutModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -498,7 +498,7 @@ const AboutModal: React.FC<AboutModalProps> = ({ isOpen, onClose, onOpenSettings
           </a>
         </div>
 
-        {/* 💡 1 & 2. 小額贊助區塊：換成圖 2 明亮薄荷綠/湖水綠顏色 + 最新文字 */}
+        {/* 小額贊助區塊 */}
         <div className="bg-gradient-to-br from-[#6ed4d6] to-[#4ab3b6] p-5 rounded-[1.8rem] text-white text-center shadow-md relative overflow-hidden flex flex-col items-center">
           <div className="text-base font-bold flex items-center justify-center gap-1.5 mb-1">
             <span>支持更新 (*,,•ᴗ•,,)ꔛ‬ꕤ</span>
@@ -512,14 +512,14 @@ const AboutModal: React.FC<AboutModalProps> = ({ isOpen, onClose, onOpenSettings
             rel="noreferrer" 
             className="w-full py-2.5 bg-white text-[#3ca1a4] font-black rounded-full text-xs shadow-sm hover:bg-gray-50 active:scale-95 transition-all flex items-center justify-center gap-1"
           >
-            <span>小額支持 ♡</span>
+            <span>小額贊助 ♡</span>
           </a>
         </div>
 
         {/* 更新說明 */}
         <div className="text-xs space-y-1 bg-amber-50/60 p-3.5 rounded-2xl border border-amber-100/80">
           <div className="font-bold text-amber-800 flex items-center justify-between">
-            <span>📌 更新說明</span>
+            <span>📍 更新說明</span>
             <span className="text-[10px] text-amber-600 font-normal">最新：{info.lastUpdate || '2026/07/23'}</span>
           </div>
           <p className="text-amber-700/90 text-[11px] leading-relaxed whitespace-pre-line">
@@ -527,11 +527,11 @@ const AboutModal: React.FC<AboutModalProps> = ({ isOpen, onClose, onOpenSettings
           </p>
         </div>
 
-        {/* 💡 3 & 4. 問題回饋區塊：薄荷綠 MessageSquare Icon (同圖 3) + 最新文字 */}
+        {/* 💡 問題回饋區塊：正式換成 Emoji 💬 */}
         <div className="bg-gray-50 p-3 rounded-2xl border border-gray-100 flex items-center justify-between text-xs">
-          <span className="font-bold text-gray-700 flex items-center gap-2">
-            <MessageSquare size={16} className="text-[#3ca1a4]" />
-            <span>有建議想告訴我？</span>
+          <span className="font-bold text-gray-700 flex items-center gap-1.5">
+            <span className="text-sm">💬</span>
+            <span>有任何使用上的建議想告訴我( •̀ᴗ•́ )و ̑̑</span>
           </span>
           <a 
             href={info.feedbackUrl || 'https://portaly.cc/tnnodisney'} 
@@ -1332,7 +1332,7 @@ export default function App() {
                 </label>
                 <div className="flex gap-2 mt-2">
                   <button onClick={handleUseDefaultImage} className="flex-1 py-2 bg-gray-100 rounded-xl text-xs font-bold text-gray-600 flex items-center justify-center gap-1 hover:bg-gray-200">
-                    <ImageIcon size={14}/> 使用內建美圖
+                    <ImageIcon size={14}/> 使用內建圖檔
                   </button>
                   <button onClick={handleClearImage} className="flex-1 py-2 bg-gray-100 rounded-xl text-xs font-bold text-gray-600 flex items-center justify-center gap-1 hover:bg-gray-200">
                     <Palette size={14}/> 使用純色背景
