@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Settings, CheckCircle2, Link as LinkIcon, Plus, Trash2, ShoppingBag,
 Ticket, Sparkles, Anchor, Castle, ExternalLink, ArrowRight, ArrowLeft, Edit3,
 Calendar, Upload, FolderInput, Copy, RotateCcw, Star, List, Map, X, Utensils,
-FerrisWheel, Search, ChevronDown, ChevronUp, Image as ImageIcon, Palette, ClipboardList, GalleryVertical, Navigation, BookOpen, Heart, Camera } from 'lucide-react';
+FerrisWheel, Search, ChevronDown, ChevronUp, Image as ImageIcon, Palette, ClipboardList, GalleryVertical, Navigation, BookOpen, Heart, Camera, MessageSquare } from 'lucide-react';
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, TouchSensor, MouseSensor, useSensor, useSensors } from '@dnd-kit/core';
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy, useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
@@ -439,7 +439,6 @@ function ActionMenu({ isOpen, onClose, onAction, itemType }: any) {
   );
 }
 
-// 💡 「關於」彈窗（Info 頁面）：問題回饋區塊已改用真實 Emoji 💬
 interface AboutModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -456,7 +455,6 @@ const AboutModal: React.FC<AboutModalProps> = ({ isOpen, onClose, onOpenSettings
     <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/50 backdrop-blur-md p-4 animate-in fade-in overflow-y-auto">
       <div className="relative w-full max-w-sm bg-white rounded-[2.5rem] p-6 shadow-2xl border border-white flex flex-col space-y-4 my-auto">
         
-        {/* 頂部 Logo 與設定 */}
         <div className="flex justify-between items-center border-b pb-3">
           <img 
             src="/D_3.png" 
@@ -473,12 +471,10 @@ const AboutModal: React.FC<AboutModalProps> = ({ isOpen, onClose, onOpenSettings
           </button>
         </div>
 
-        {/* 歡迎文案 */}
         <div className="bg-gray-50/80 p-3 rounded-2xl border border-gray-100 text-center">
           <p className="text-xs font-bold text-gray-700">歡迎追蹤社群看更多攻略！ ✨</p>
         </div>
 
-        {/* 社群雙欄按鈕 (IG & Threads) */}
         <div className="grid grid-cols-2 gap-2.5">
           <a 
             href={info.igUrl || 'https://www.instagram.com/tnnodisney'} 
@@ -498,7 +494,6 @@ const AboutModal: React.FC<AboutModalProps> = ({ isOpen, onClose, onOpenSettings
           </a>
         </div>
 
-        {/* 小額贊助區塊 */}
         <div className="bg-gradient-to-br from-[#6ed4d6] to-[#4ab3b6] p-5 rounded-[1.8rem] text-white text-center shadow-md relative overflow-hidden flex flex-col items-center">
           <div className="text-base font-bold flex items-center justify-center gap-1.5 mb-1">
             <span>支持更新 (*,,•ᴗ•,,)ꔛ‬ꕤ</span>
@@ -512,14 +507,13 @@ const AboutModal: React.FC<AboutModalProps> = ({ isOpen, onClose, onOpenSettings
             rel="noreferrer" 
             className="w-full py-2.5 bg-white text-[#3ca1a4] font-black rounded-full text-xs shadow-sm hover:bg-gray-50 active:scale-95 transition-all flex items-center justify-center gap-1"
           >
-            <span>小額贊助 ♡</span>
+            <span>小額支持 ♡</span>
           </a>
         </div>
 
-        {/* 更新說明 */}
         <div className="text-xs space-y-1 bg-amber-50/60 p-3.5 rounded-2xl border border-amber-100/80">
           <div className="font-bold text-amber-800 flex items-center justify-between">
-            <span>📍 更新說明</span>
+            <span>📍更新說明</span>
             <span className="text-[10px] text-amber-600 font-normal">更新時間：{info.lastUpdate || '2026/07/23'}</span>
           </div>
           <p className="text-amber-700/90 text-[11px] leading-relaxed whitespace-pre-line">
@@ -527,11 +521,10 @@ const AboutModal: React.FC<AboutModalProps> = ({ isOpen, onClose, onOpenSettings
           </p>
         </div>
 
-        {/* 💡 問題回饋區塊：正式換成 Emoji 💬 */}
         <div className="bg-gray-50 p-3 rounded-2xl border border-gray-100 flex items-center justify-between text-xs">
           <span className="font-bold text-gray-700 flex items-center gap-1.5">
             <span className="text-sm">💬</span>
-            <span>有使用上的建議想告訴我？</span>
+            <span>有建議想告訴我？</span>
           </span>
           <a 
             href={info.feedbackUrl || 'https://portaly.cc/tnnodisney'} 
@@ -544,7 +537,6 @@ const AboutModal: React.FC<AboutModalProps> = ({ isOpen, onClose, onOpenSettings
           </a>
         </div>
 
-        {/* 注意事項 */}
         <div className="text-[11px] text-gray-400 bg-gray-50 p-3 rounded-2xl border border-gray-100 leading-relaxed whitespace-pre-line">
           <span className="font-bold text-gray-500 block mb-0.5">⚠️ 注意事項</span>
           {info.disclaimer || 'bereaDy 是一款非官方攻略幫手。內容為個人整理與旅遊資訊分享，活動、營運及商品資訊可能有所異動，請以東京迪士尼度假區官方最新公告為準。'}
@@ -589,7 +581,7 @@ const ParkGuideModal: React.FC<ParkGuideModalProps> = ({ isOpen, onClose, parkTy
             </div>
             <div>
               <h3 className="font-bold text-lg text-gray-800">{displayTitle}</h3>
-              <p className="text-xs text-gray-400">園區文章全輯</p>
+              <p className="text-xs text-gray-400">園區文章全集</p>
             </div>
           </div>
           <button onClick={onClose} className="p-2 bg-gray-100 hover:bg-gray-200 rounded-full text-gray-500"><X size={18}/></button>
@@ -1315,6 +1307,7 @@ export default function App() {
   return (
     <div className="min-h-screen bg-gray-100 pb-28 font-sans flex flex-col justify-between">
       
+      {/* 💡 歡迎畫面修正：日期輸入框修正 iOS Safari / Android 爆框 Bug */}
       {showOnboarding && (
         <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center p-6 bg-white/95 backdrop-blur-md animate-in fade-in overflow-y-auto">
           <div className="w-full max-w-sm py-10">
@@ -1332,7 +1325,7 @@ export default function App() {
                 </label>
                 <div className="flex gap-2 mt-2">
                   <button onClick={handleUseDefaultImage} className="flex-1 py-2 bg-gray-100 rounded-xl text-xs font-bold text-gray-600 flex items-center justify-center gap-1 hover:bg-gray-200">
-                    <ImageIcon size={14}/> 使用內建圖檔
+                    <ImageIcon size={14}/> 使用內建美圖
                   </button>
                   <button onClick={handleClearImage} className="flex-1 py-2 bg-gray-100 rounded-xl text-xs font-bold text-gray-600 flex items-center justify-center gap-1 hover:bg-gray-200">
                     <Palette size={14}/> 使用純色背景
@@ -1362,9 +1355,15 @@ export default function App() {
               
               <div>
                 <label className="block text-xs font-bold text-gray-400 mb-2 uppercase">入園日期</label>
-                <div className="relative">
-                  <Calendar className="absolute left-4 top-4 text-gray-400" size={20}/>
-                  <input type="date" className="w-full p-4 pl-12 bg-gray-100 rounded-xl font-bold outline-none text-sm" value={tempProfile.date} onChange={e => setTempProfile({...tempProfile, date: e.target.value})} />
+                {/* 日期輸入區域防爆框包覆 */}
+                <div className="relative w-full max-w-full box-border">
+                  <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none z-10" size={20}/>
+                  <input 
+                    type="date" 
+                    className="w-full box-border p-4 pl-12 bg-gray-100 rounded-xl font-bold outline-none text-sm appearance-none min-w-0" 
+                    value={tempProfile.date} 
+                    onChange={e => setTempProfile({...tempProfile, date: e.target.value})} 
+                  />
                 </div>
               </div>
               
@@ -1391,7 +1390,7 @@ export default function App() {
             <div className="relative h-72 w-full overflow-hidden">
               {data.userProfile.coverImage ? (
                 <img src={data.userProfile.coverImage} className="absolute inset-0 h-full w-full object-cover" style={{ objectPosition: `50% ${data.userProfile.coverPositionY}%`, transform: `scale(${data.userProfile.coverScale || 1})` }} />
-              ) : <div className={`w-full h-full ${tm.bg} flex items-center justify-center text-gray-300`}></div>}
+              ) : <div className={`w-full h-full ${tm.primary}`}></div>}
               
               <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
               
